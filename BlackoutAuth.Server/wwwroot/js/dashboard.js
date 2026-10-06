@@ -923,19 +923,20 @@ class Program
 {
     static void Main()
     {
-        // 1. Initialize Blackout Client with your app credentials
+        // 1. Initialize Blackout Client with your app credentials & enable Anti-Debug
         var auth = new BlackoutApp(
             name: "${appName}",
             ownerId: "${ownerId}",
             secret: "${secret}",
             version: "${version}",
-            apiUrl: "${apiUrl}"
+            apiUrl: "${apiUrl}",
+            enableAntiDebug: true // <--- Kills debugger & process hooking tools (x64dbg, dnSpy, CheatEngine)
         );
 
         // 2. Initialize connection
         if (!auth.Init())
         {
-            Console.WriteLine("[-] Handshake Failed: " + auth.LastError);
+            Console.WriteLine("[-] Handshake / Security Check Failed: " + auth.LastError);
             return;
         }
 
@@ -950,7 +951,12 @@ class Program
             Console.WriteLine($"[+] Rank Level: {auth.User.Level}");
             Console.WriteLine($"[+] Hardware ID: {auth.User.Hwid}");
 
-            // Your protected application logic starts here...
+            // 4. UNBYPASSABLE ANTI-CRACK TIP: Fetch critical offsets or strings from cloud
+            // If crackers patch the 'LicenseOnly' if-check, this variable won't decrypt!
+            string secretKey = auth.GetVar("client_greeting");
+            Console.WriteLine("[+] Decrypted Payload Key: " + secretKey);
+
+            // Run protected payload here...
         }
         else
         {
@@ -963,7 +969,15 @@ class Program
 `using System;
 using BlackoutAuth.SDK.CSharp;
 
-var auth = new BlackoutApp("${appName}", "${ownerId}", "${secret}", "${version}", "${apiUrl}");
+var auth = new BlackoutApp(
+    "${appName}", 
+    "${ownerId}", 
+    "${secret}", 
+    "${version}", 
+    "${apiUrl}", 
+    enableAntiDebug: true
+);
+
 if (!auth.Init())
 {
     Console.WriteLine("Init failed: " + auth.LastError);
@@ -989,11 +1003,14 @@ if (auth.Login(user, pass))
 string greeting = auth.GetVar("client_greeting");
 Console.WriteLine("Decrypted Cloud String: " + greeting);
 
-// Check session keep-alive status
+// Check session keep-alive status (returns false if revoked)
 bool isAlive = auth.Check();
 
+// Download & reflect protected DLL directly in memory (zero disk trace)
+byte[] protectedDll = auth.DownloadFile("YOUR_PROTECTED_FILE_ID");
+
 // Send security audit log to dashboard
-auth.Log("User initialized cheat module.", "INFO");`;
+auth.Log("User initialized protected module.", "INFO");`;
 
   // C++ Snippets
   const cppLicense = 
@@ -1011,10 +1028,10 @@ int main()
         "${apiUrl}"
     );
 
-    // 2. Handshake with server
+    // 2. Handshake with server (verifies integrity & checks for debuggers)
     if (!auth.Init())
     {
-        std::cout << "[-] Handshake failed: " << auth.GetLastError() << std::endl;
+        std::cout << "[-] Handshake / Security check failed: " << auth.GetLastError() << std::endl;
         return 1;
     }
 
@@ -1029,6 +1046,11 @@ int main()
         std::cout << "[+] Subscription Expiry: " << auth.User.Expiry << std::endl;
         std::cout << "[+] Rank Level: " << auth.User.Level << std::endl;
         std::cout << "[+] Bound HWID: " << auth.User.Hwid << std::endl;
+
+        // 4. ANTI-CRACK TIP: Decrypt critical strings dynamically from cloud
+        // Crackers CANNOT patch this because memory decryption requires a valid server key!
+        std::string payloadString = auth.GetVar("client_greeting");
+        std::cout << "[+] Server-Decrypted Data: " << payloadString << std::endl;
 
         // Launch your protected C++ application here!
     }
@@ -1048,7 +1070,7 @@ Blackout::Auth auth("${appName}", "${ownerId}", "${secret}", "${version}", "${ap
 if (!auth.Init()) return 1;
 
 // Method A: Login with Username & Password
-if (auth.Login("dexter", "mypassword"))
+if (auth.Login("user", "password"))
 {
     std::cout << "[+] Welcome back " << auth.User.Username << std::endl;
     std::cout << "[+] Subscription Expiry: " << auth.User.Expiry << std::endl;

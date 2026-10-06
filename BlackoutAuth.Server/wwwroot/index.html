@@ -515,6 +515,92 @@
             </div>
           </div>
 
+          <!-- SDK Package Downloads & Anti-Crack Overview -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="glass-panel p-5 border border-purple-500/30 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 px-2 py-0.5 rounded bg-purple-950/40 border border-purple-800/40">C++ / Native</span>
+                  <i class="fa-solid fa-microchip text-purple-400"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white font-['Outfit']">BlackoutAuth.hpp</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Single zero-dependency header with native WinHTTP, BCrypt encryption, HWID lock, and anti-debugger.
+                </p>
+              </div>
+              <a href="/api/admin/download-sdk/cpp" download="BlackoutAuth.hpp" class="mt-4 w-full py-2.5 px-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-mono text-xs flex items-center justify-center space-x-2 transition-all">
+                <i class="fa-solid fa-download"></i>
+                <span>Download C++ Header (.hpp)</span>
+              </a>
+            </div>
+
+            <div class="glass-panel p-5 border border-cyan-500/30 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/40 border border-cyan-800/40">C# Source File</span>
+                  <i class="fa-brands fa-microsoft text-cyan-400"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white font-['Outfit']">BlackoutApp.cs</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Drop-in single source file for .NET 6/7/8/9 with complete auth client, AES-256 decryption, and HWID.
+                </p>
+              </div>
+              <a href="/api/admin/download-sdk/csharp" download="BlackoutApp.cs" class="mt-4 w-full py-2.5 px-3 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-mono text-xs flex items-center justify-center space-x-2 transition-all">
+                <i class="fa-solid fa-download"></i>
+                <span>Download C# Source (.cs)</span>
+              </a>
+            </div>
+
+            <div class="glass-panel p-5 border border-indigo-500/30 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400 px-2 py-0.5 rounded bg-indigo-950/40 border border-indigo-800/40">Pre-built Assembly</span>
+                  <i class="fa-solid fa-cube text-indigo-400"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white font-['Outfit']">BlackoutAuth.SDK.CSharp.dll</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Compiled release library ready to reference directly into Visual Studio or any .NET Loader project.
+                </p>
+              </div>
+              <a href="/api/admin/download-sdk/dll" download="BlackoutAuth.SDK.CSharp.dll" class="mt-4 w-full py-2.5 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-mono text-xs flex items-center justify-center space-x-2 transition-all">
+                <i class="fa-solid fa-download"></i>
+                <span>Download Pre-built DLL</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Anti-Crack & Unbypassable Protection Box -->
+          <div class="p-5 rounded-2xl bg-[#0e111d] border border-amber-500/30 relative overflow-hidden">
+            <div class="flex items-start space-x-4">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-lg shrink-0">
+                <i class="fa-solid fa-shield-cat"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="text-sm font-bold text-white font-['Outfit'] flex items-center gap-2">
+                  <span>Anti-Crack & Anti-Bypass Architecture (How To Prevent Patching & Cracking)</span>
+                  <span class="text-[10px] text-amber-400 bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 rounded font-mono">Military-Grade</span>
+                </h4>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                  If you only check <code class="text-amber-300">if (auth.LicenseOnly(key))</code> in your loader, crackers can patch that single boolean instruction in x64dbg/dnSpy! To make your project <strong>completely impossible to bypass</strong>, use these 3 built-in Blackout layers:
+                </p>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+                  <div class="p-3 rounded-lg bg-[#070910] border border-slate-800">
+                    <strong class="text-amber-400 block mb-1">1. Encrypted Cloud Variables</strong>
+                    <span class="text-slate-400 text-[11px] leading-tight block">Never hardcode your game offsets, sensitive URLs or secrets in your client. Store them in <em>Cloud Variables</em>. The server encrypts them with a dynamic session key that crackers cannot forge.</span>
+                  </div>
+                  <div class="p-3 rounded-lg bg-[#070910] border border-slate-800">
+                    <strong class="text-purple-400 block mb-1">2. Protected Binary Delivery</strong>
+                    <span class="text-slate-400 text-[11px] leading-tight block">Do not store your actual payload DLL inside the loader. Upload it to <em>Protected Files</em>. Your client downloads and reflects it directly into memory only after server authorization.</span>
+                  </div>
+                  <div class="p-3 rounded-lg bg-[#070910] border border-slate-800">
+                    <strong class="text-emerald-400 block mb-1">3. Native Anti-Debug & Heartbeat</strong>
+                    <span class="text-slate-400 text-[11px] leading-tight block">Turn on <code class="text-emerald-300">auth.EnableAntiDebug = true</code> to detect x64dbg, CheatEngine, Wireshark, dnSpy and process tampering. Use periodic <code class="text-emerald-300">Check()</code> heartbeats.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Language Selector -->
           <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
             <button id="sdkBtnCSharp" onclick="selectSdkLang('csharp')" class="px-5 py-2.5 rounded-xl font-mono text-xs font-bold transition-all bg-purple-600 text-white shadow-lg shadow-purple-600/30 flex items-center gap-2">

@@ -820,5 +820,63 @@ namespace BlackoutAuth.Server.Controllers
             await DiscordService.SendAlertAsync(url, "Webhook Test", "Blackout Auth Discord notification is working successfully!", 0x8B5CF6);
             return Ok(new { success = true, message = "Test notification sent." });
         }
+
+        [HttpGet("download-sdk/{fileType}")]
+        public IActionResult DownloadSdk(string fileType)
+        {
+            if (!IsAdminAuthenticated()) return Unauthorized();
+
+            string webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "downloads");
+            string filePath = "";
+            string contentType = "application/octet-stream";
+            string downloadFileName = "";
+
+            switch (fileType.ToLowerInvariant())
+            {
+                case "cpp":
+                case "hpp":
+                    filePath = Path.Combine(webRoot, "BlackoutAuth.hpp");
+                    contentType = "text/plain";
+                    downloadFileName = "BlackoutAuth.hpp";
+                    break;
+                case "csharp":
+                case "cs":
+                    filePath = Path.Combine(webRoot, "BlackoutApp.cs");
+                    contentType = "text/plain";
+                    downloadFileName = "BlackoutApp.cs";
+                    break;
+                case "dll":
+                    filePath = Path.Combine(webRoot, "BlackoutAuth.SDK.CSharp.dll");
+                    contentType = "application/octet-stream";
+                    downloadFileName = "BlackoutAuth.SDK.CSharp.dll";
+                    break;
+                default:
+                    return BadRequest("Invalid SDK file requested.");
+            }
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                // Fallback search relative to solution root
+                string altPath = fileType.ToLowerInvariant() switch
+                {
+                    "cpp" or "hpp" => Path.Combine(Directory.GetCurrentDirectory(), "..", "BlackoutAuth.SDK.Cpp", "include", "BlackoutAuth.hpp"),
+                    "csharp" or "cs" => Path.Combine(Directory.GetCurrentDirectory(), "..", "BlackoutAuth.SDK.CSharp", "BlackoutApp.cs"),
+                    "dll" => Path.Combine(Directory.GetCurrentDirectory(), "..", "BlackoutAuth.SDK.CSharp", "bin", "Release", "net9.0", "BlackoutAuth.SDK.CSharp.dll"),
+                    _ => ""
+                };
+
+                if (!string.IsNullOrEmpty(altPath) && System.IO.File.Exists(altPath))
+                {
+                    filePath = altPath;
+                }
+                else
+                {
+                    return NotFound(new { success = false, message = "SDK file not found on server." });
+                }
+            }
+
+            var bytes = System.IO.File.ReadAllBytes(filePath);
+            return File(bytes, contentType, downloadFileName);
+        }
     }
 }
