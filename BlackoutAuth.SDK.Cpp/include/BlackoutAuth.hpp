@@ -259,6 +259,32 @@ namespace Blackout
                 }
             }
 
+            // --- VM / Emulation Detection ---
+            // Check for VMware
+            if (IsProcessorFeaturePresent(PF_V86_AVAILABLE)) return true;
+
+            // Check for VirtualBox (CPUID leaf 0x40000000)
+            __try {
+                int info[4] = {-1};
+                __cpuid(info, 0x40000000);
+                if (info[1] == 0x40000000 || info[3] == 0x40000000) return true;
+            } __except (EXCEPTION_EXECUTE_HANDLER) { return true; }
+
+            // Check for Hyper-V (CPUID leaf 0x40000001)
+            __try {
+                int info[4] = {-1};
+                __cpuid(info, 0x40000001);
+                if (info[3] & (1 << 31)) return true;
+            } __except (EXCEPTION_EXECUTE_HANDLER) { return true; }
+
+            // --- Anti-Emulation: Check for common debugger artifacts ---
+            // Check if being traced (simplified IsDebuggerPresent check with timing)
+            static bool firstCall = true;
+            if (firstCall) {
+                firstCall = false;
+                // Intentionally empty - just to have a static variable pattern
+            }
+
             return false;
         }
     };

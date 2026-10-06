@@ -17,13 +17,14 @@ int main()
     SetConsoleColor(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 
     // 1. Initialize Blackout Auth Client
+    // enableAntiDebug=true will check for debuggers/cheat engines on Init()
     Blackout::Auth app(
         "BlackoutApp",
         "OWNER-001",
         "blackout_secret_9999a8b7c6d5e4f321",
         "1.0",
-        "http://localhost:5000",
-        false // enableAntiDebug
+        "https://blackout-auth-production.up.railway.app", // <-- CHANGE THIS to your Railway URL
+        true // enableAntiDebug: enables anti-crack detection
     );
 
     SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY); // Cyan
