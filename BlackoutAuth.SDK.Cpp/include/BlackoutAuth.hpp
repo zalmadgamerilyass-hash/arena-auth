@@ -5,6 +5,7 @@
 #endif
 
 #include <windows.h>
+#include <psapi.h>
 #include <winhttp.h>
 #include <bcrypt.h>
 #include <wincrypt.h>
@@ -18,6 +19,7 @@
 #pragma comment(lib, "winhttp.lib")
 #pragma comment(lib, "bcrypt.lib")
 #pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "psapi.lib")
 
 namespace Blackout
 {
@@ -212,7 +214,52 @@ namespace Blackout
             if (IsDebuggerPresent()) return true;
             BOOL remote = FALSE;
             CheckRemoteDebuggerPresent(GetCurrentProcess(), &remote);
-            return remote == TRUE;
+            if (remote == TRUE) return true;
+
+            // Check for common debugger / cheat engine processes
+            const char* badProcesses[] = {
+                "x64dbg.exe", "x32dbg.exe", "ollydbg.exe", "ida64.exe", "ida.exe",
+                "cheatengine-x86_64.exe", "cheatengine-x86_64-wrapper.exe",
+                "CheatEngine.exe", "ProcessHacker.exe", "ProcessHacker2.exe",
+                "httpdebuggerpro.exe", "Fiddler.exe", "Wireshark.exe",
+                "dnspy.exe", "de4dot.exe", "dotPeek.exe", "ILSpy.exe",
+                "scylla_x64.exe", "scylla_x86.exe", "PETools.exe"
+            };
+
+            DWORD pidList[1024];
+            DWORD bytesReturned = 0;
+            if (EnumProcesses(pidList, sizeof(pidList), &bytesReturned))
+            {
+                DWORD processCount = bytesReturned / sizeof(DWORD);
+                for (DWORD i = 0; i < processCount; i++)
+                {
+                    if (pidList[i] == 0) continue;
+                    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pidList[i]);
+                    if (hProcess)
+                    {
+                        TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
+                        HMODULE hMod;
+                        DWORD cbNeeded;
+                        if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
+                        {
+                            if (GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR)))
+                            {
+                                for (int j = 0; j < sizeof(badProcesses) / sizeof(badProcesses[0]); j++)
+                                {
+                                    if (_stricmp(szProcessName, badProcesses[j]) == 0)
+                                    {
+                                        CloseHandle(hProcess);
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        CloseHandle(hProcess);
+                    }
+                }
+            }
+
+            return false;
         }
     };
 

@@ -62,8 +62,7 @@ Console.WriteLine("          ⚡ BLACKOUT AUTH SERVER STARTED ⚡             ")
 Console.WriteLine("==========================================================");
 Console.WriteLine("  API Endpoint:       http://localhost:5000/api/v1/auth   ");
 Console.WriteLine("  Admin Web Panel:    http://localhost:5000/index.html    ");
-Console.WriteLine("  Default Admin:      admin                               ");
-Console.WriteLine("  Default Password:   blackout1337                        ");
+Console.WriteLine("  *** Login to admin panel with your credentials ***      ");
 Console.WriteLine("  Default App Name:   BlackoutApp                         ");
 Console.WriteLine("  Default Secret:     blackout_secret_9999a8b7c6d5e4f321  ");
 Console.WriteLine("==========================================================");

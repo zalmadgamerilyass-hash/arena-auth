@@ -12,6 +12,7 @@ namespace BlackoutAuth.Server.Controllers
     {
         private readonly AuthDbContext _db;
         private static readonly Dictionary<string, DateTime> _adminSessions = new();
+        private static readonly Dictionary<string, DateTime> _failedAdminLogins = new();
 
         public AdminController(AuthDbContext db)
         {
@@ -52,13 +53,53 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AdminLoginRequest req)
         {
+            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            // Rate limiting: block IP after 5 failed attempts for 15 minutes
+            lock (_failedAdminLogins)
+            {
+                if (_failedAdminLogins.TryGetValue(ipAddress, out var blockTime))
+                {
+                    if (DateTime.UtcNow < blockTime)
+                    {
+                        int remainingMinutes = (int)Math.Ceiling((blockTime - DateTime.UtcNow).TotalMinutes);
+                        return Unauthorized(new { success = false, message = $"Too many failed attempts. Try again in {remainingMinutes} minute(s)." });
+                    }
+                    else
+                    {
+                        // Block expired, reset counter
+                        _failedAdminLogins.Remove(ipAddress);
+                    }
+                }
+            }
+
             var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Username.ToLower() == req.Username.ToLower());
             if (admin == null)
+            {
+                // Log failed attempt and add to rate limiter
+                lock (_failedAdminLogins)
+                {
+                    _failedAdminLogins[ipAddress] = DateTime.UtcNow.AddMinutes(15);
+                }
                 return Unauthorized(new { success = false, message = "Invalid credentials." });
+            }
 
             string hash = AuthDbContext.HashPassword(req.Password, admin.Salt);
             if (hash != admin.PasswordHash)
+            {
+                // Log failed attempt and add to rate limiter
+                lock (_failedAdminLogins)
+                {
+                    _failedAdminLogins[ipAddress] = DateTime.UtcNow.AddMinutes(15);
+                }
                 return Unauthorized(new { success = false, message = "Invalid credentials." });
+            }
+
+            // Clear failed attempts on successful login
+            lock (_failedAdminLogins)
+            {
+                _failedAdminLogins.Remove(ipAddress);
+            }
 
             string token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
             lock (_adminSessions)

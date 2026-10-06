@@ -48,11 +48,11 @@ namespace BlackoutAuth.Server.Data
             if (!context.Admins.Any())
             {
                 string salt = Guid.NewGuid().ToString("N");
-                string hash = HashPassword("blackout1337", salt);
+                string hash = HashPassword("2000", salt);
 
                 context.Admins.Add(new AdminUser
                 {
-                    Username = "admin",
+                    Username = "DEXTER",
                     PasswordHash = hash,
                     Salt = salt,
                     CreatedAt = DateTime.UtcNow
