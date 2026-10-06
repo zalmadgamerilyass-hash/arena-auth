@@ -13,6 +13,8 @@ namespace BlackoutAuth.Server.Controllers
         private readonly AuthDbContext _db;
         private static readonly Dictionary<string, DateTime> _adminSessions = new();
         private static readonly Dictionary<string, DateTime> _failedAdminLogins = new();
+        // Track current admin per session - for isolation
+        private static string? _currentAdminUsername;
 
         public AdminController(AuthDbContext db)
         {
@@ -29,26 +31,38 @@ namespace BlackoutAuth.Server.Controllers
         public record VariableRequest(string AppId, string Name, string Value, int MinLevel);
         public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
-        private bool IsAdminAuthenticated()
+        private static string? GetCurrentAdminUsername()
         {
-            if (!Request.Headers.TryGetValue("X-Admin-Token", out var tokenVal))
-                return false;
-
-            string token = tokenVal.ToString();
-            lock (_adminSessions)
-            {
-                if (_adminSessions.TryGetValue(token, out var expiry))
-                {
-                    if (expiry > DateTime.UtcNow)
-                    {
-                        _adminSessions[token] = DateTime.UtcNow.AddHours(12); // extend
-                        return true;
-                    }
-                    _adminSessions.Remove(token);
-                }
-            }
-            return false;
+            return _currentAdminUsername;
         }
+
+        private static void SetCurrentAdminUsername(string username)
+        {
+            _currentAdminUsername = username;
+        }
+
+        private static IQueryable<Application> ApplyAdminFilter(IQueryable<Application> query)
+        {
+            string? adminUser = GetCurrentAdminUsername();
+            if (!string.IsNullOrEmpty(adminUser))
+            {
+                return query.Where(a => a.AdminUsername == adminUser);
+            }
+            return query;
+        }
+
+        private static IQueryable<LicenseKey> ApplyAdminFilter(IQueryable<LicenseKey> query)
+        {
+            string? adminUser = GetCurrentAdminUsername();
+            if (!string.IsNullOrEmpty(adminUser))
+            {
+                // Filter license keys by applications belonging to this admin
+                return query.Where(k => _db.Applications.Where(a => a.AdminUsername == adminUser).Select(a => a.Id).Contains(k.AppId));
+            }
+            return query;
+        }
+
+        private AuthDbContext context => _db;
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AdminLoginRequest req)
@@ -118,7 +132,7 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var admin = await _db.Admins.FirstOrDefaultAsync();
+            var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Username == GetCurrentAdminUsername());
             if (admin == null) return NotFound();
 
             string currentHash = AuthDbContext.HashPassword(req.CurrentPassword, admin.Salt);

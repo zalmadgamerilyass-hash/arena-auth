@@ -44,12 +44,12 @@ namespace BlackoutAuth.Server.Data
         {
             context.Database.EnsureCreated();
 
-            // Seed admin user SINZO (password: 111)
+            // --- Seed 3 Admin Users ---
+            // SINZO (password: 111)
             if (!context.Admins.Any(a => a.Username == "SINZO"))
             {
                 string salt = Guid.NewGuid().ToString("N");
                 string hash = HashPassword("111", salt);
-
                 context.Admins.Add(new AdminUser
                 {
                     Username = "SINZO",
@@ -59,12 +59,11 @@ namespace BlackoutAuth.Server.Data
                 });
             }
 
-            // Seed admin user MARCHAL (password: 222)
+            // MARCHAL (password: 222)
             if (!context.Admins.Any(a => a.Username == "MARCHAL"))
             {
                 string salt = Guid.NewGuid().ToString("N");
                 string hash = HashPassword("222", salt);
-
                 context.Admins.Add(new AdminUser
                 {
                     Username = "MARCHAL",
@@ -74,12 +73,11 @@ namespace BlackoutAuth.Server.Data
                 });
             }
 
-            // Seed default admin user DEXTER (password: 2000)
+            // DEXTER (password: 2000)
             if (!context.Admins.Any(a => a.Username == "DEXTER"))
             {
                 string salt = Guid.NewGuid().ToString("N");
                 string hash = HashPassword("2000", salt);
-
                 context.Admins.Add(new AdminUser
                 {
                     Username = "DEXTER",
@@ -89,42 +87,46 @@ namespace BlackoutAuth.Server.Data
                 });
             }
 
-            // Seed default application (BlackoutApp) that SDKs connect to
-            if (!context.Applications.Any(a => a.Name == "BlackoutApp"))
+            context.SaveChanges(); // Save admins first to get their IDs/names
+
+            // --- Seed Separate Applications for Each Admin ---
+            // 1. DEXTER's Application
+            if (!context.Applications.Any(a => a.AdminUsername == "DEXTER"))
             {
-                var app = new Application
+                var dexterApp = new Application
                 {
                     Name = "BlackoutApp",
-                    OwnerId = "OWNER-001",
-                    Secret = "blackout_secret_9999a8b7c6d5e4f321",
+                    OwnerId = "OWNER-DEXTER",
+                    AdminUsername = "DEXTER",
+                    Secret = "blackout_secret_9999a8b7c6d5e4f321_Dexter", // Unique secret per admin
                     Version = "1.0",
                     IsEnabled = true,
                     HwidLockEnabled = true,
                     CreatedAt = DateTime.UtcNow
                 };
-                context.Applications.Add(app);
-                context.SaveChanges(); // Save to get the App.Id
+                context.Applications.Add(dexterApp);
+                context.SaveChanges(); // Save to get App.Id
 
-                // Seed a demo license key
+                // Dexters demo license key
                 context.LicenseKeys.Add(new LicenseKey
                 {
-                    Key = "BLACKOUT-DEMO-30DAYS-1337",
-                    AppId = app.Id,
+                    Key = "BLACKOUT-DEXTER-30DAYS-1337",
+                    AppId = dexterApp.Id,
                     DurationDays = 30,
                     Level = 1,
                     MaxUses = 1,
                     CurrentUses = 0,
                     Status = "Unused",
-                    Note = "Demo license key for testing",
+                    Note = "Demo license key for DEXTER",
                     CreatedAt = DateTime.UtcNow
                 });
 
-                // Seed a demo user (username: demo, password: demo1234)
+                // Dexters demo user
                 string userSalt = Guid.NewGuid().ToString("N");
                 string userHash = HashPassword("demo1234", userSalt);
                 context.Users.Add(new AppUser
                 {
-                    AppId = app.Id,
+                    AppId = dexterApp.Id,
                     Username = "demo",
                     PasswordHash = userHash + ":" + userSalt,
                     ExpiryDate = DateTime.UtcNow.AddYears(1),
@@ -135,12 +137,128 @@ namespace BlackoutAuth.Server.Data
                     LastLogin = DateTime.UtcNow
                 });
 
-                // Seed a demo cloud variable
+                // Dexters cloud variable
                 context.CloudVariables.Add(new CloudVariable
                 {
-                    AppId = app.Id,
+                    AppId = dexterApp.Id,
                     Name = "client_greeting",
-                    Value = "Welcome to BLACKOUT AUTH! You are now authenticated.",
+                    Value = "Welcome DEXTER! Your app is isolated.",
+                    MinLevel = 1,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            // 2. SINZO's Application
+            if (!context.Applications.Any(a => a.AdminUsername == "SINZO"))
+            {
+                var sinzoApp = new Application
+                {
+                    Name = "BlackoutApp",
+                    OwnerId = "OWNER-SINZO",
+                    AdminUsername = "SINZO",
+                    Secret = "blackout_secret_9999a8b7c6d5e4f321_Sinzo", // Unique secret per admin
+                    Version = "1.0",
+                    IsEnabled = true,
+                    HwidLockEnabled = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.Applications.Add(sinzoApp);
+                context.SaveChanges();
+
+                // Sinzo's demo license key
+                context.LicenseKeys.Add(new LicenseKey
+                {
+                    Key = "BLACKOUT-SINZO-30DAYS-1337",
+                    AppId = sinzoApp.Id,
+                    DurationDays = 30,
+                    Level = 1,
+                    MaxUses = 1,
+                    CurrentUses = 0,
+                    Status = "Unused",
+                    Note = "Demo license key for SINZO",
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                // Sinzo's demo user
+                string userSalt = Guid.NewGuid().ToString("N");
+                string userHash = HashPassword("demo1234", userSalt);
+                context.Users.Add(new AppUser
+                {
+                    AppId = sinzoApp.Id,
+                    Username = "demo",
+                    PasswordHash = userHash + ":" + userSalt,
+                    ExpiryDate = DateTime.UtcNow.AddYears(1),
+                    Level = 1,
+                    MaxLogins = 1,
+                    IsBanned = false,
+                    CreatedAt = DateTime.UtcNow,
+                    LastLogin = DateTime.UtcNow
+                });
+
+                // Sinzo's cloud variable
+                context.CloudVariables.Add(new CloudVariable
+                {
+                    AppId = sinzoApp.Id,
+                    Name = "client_greeting",
+                    Value = "Welcome SINZOR! Your app is isolated.",
+                    MinLevel = 1,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            // 3. MARCHAL's Application
+            if (!context.Applications.Any(a => a.AdminUsername == "MARCHAL"))
+            {
+                var marchalApp = new Application
+                {
+                    Name = "BlackoutApp",
+                    OwnerId = "OWNER-MARCHAL",
+                    AdminUsername = "MARCHAL",
+                    Secret = "blackout_secret_9999a8b7c6d5e4f321_Marchal", // Unique secret per admin
+                    Version = "1.0",
+                    IsEnabled = true,
+                    HwidLockEnabled = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.Applications.Add(marchalApp);
+                context.SaveChanges();
+
+                // Marchal's demo license key
+                context.LicenseKeys.Add(new LicenseKey
+                {
+                    Key = "BLACKOUT-MARCHAL-30DAYS-1337",
+                    AppId = marchalApp.Id,
+                    DurationDays = 30,
+                    Level = 1,
+                    MaxUses = 1,
+                    CurrentUses = 0,
+                    Status = "Unused",
+                    Note = "Demo license key for MARCHAL",
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                // Marchal's demo user
+                string userSalt = Guid.NewGuid().ToString("N");
+                string userHash = HashPassword("demo1234", userSalt);
+                context.Users.Add(new AppUser
+                {
+                    AppId = marchalApp.Id,
+                    Username = "demo",
+                    PasswordHash = userHash + ":" + userSalt,
+                    ExpiryDate = DateTime.UtcNow.AddYears(1),
+                    Level = 1,
+                    MaxLogins = 1,
+                    IsBanned = false,
+                    CreatedAt = DateTime.UtcNow,
+                    LastLogin = DateTime.UtcNow
+                });
+
+                // Marchal's cloud variable
+                context.CloudVariables.Add(new CloudVariable
+                {
+                    AppId = marchalApp.Id,
+                    Name = "client_greeting",
+                    Value = "Welcome MARCHAL! Your app is isolated.",
                     MinLevel = 1,
                     UpdatedAt = DateTime.UtcNow
                 });
@@ -155,5 +273,7 @@ namespace BlackoutAuth.Server.Data
             byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + salt + "BLACKOUT_SALT_KEY"));
             return Convert.ToHexString(bytes).ToLowerInvariant();
         }
+    }
+}
     }
 }

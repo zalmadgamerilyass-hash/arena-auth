@@ -20,6 +20,7 @@ namespace BlackoutAuth.Server.Models
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public string Name { get; set; } = "";
         public string OwnerId { get; set; } = "";
+        public string AdminUsername { get; set; } = ""; // Who owns this application
         public string Secret { get; set; } = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
         public string Version { get; set; } = "1.0";
         public bool IsEnabled { get; set; } = true;
