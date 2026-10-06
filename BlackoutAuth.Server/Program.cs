@@ -31,7 +31,8 @@ builder.Services.AddCors(options =>
 });
 
 // Port configuration (e.g. 5000 or port from env/commandline)
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var app = builder.Build();
 
