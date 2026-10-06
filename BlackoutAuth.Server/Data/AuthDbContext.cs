@@ -44,8 +44,38 @@ namespace BlackoutAuth.Server.Data
         {
             context.Database.EnsureCreated();
 
-            // Seed default admin user
-            if (!context.Admins.Any())
+            // Seed admin user SINZO (password: 111)
+            if (!context.Admins.Any(a => a.Username == "SINZO"))
+            {
+                string salt = Guid.NewGuid().ToString("N");
+                string hash = HashPassword("111", salt);
+
+                context.Admins.Add(new AdminUser
+                {
+                    Username = "SINZO",
+                    PasswordHash = hash,
+                    Salt = salt,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // Seed admin user MARCHAL (password: 222)
+            if (!context.Admins.Any(a => a.Username == "MARCHAL"))
+            {
+                string salt = Guid.NewGuid().ToString("N");
+                string hash = HashPassword("222", salt);
+
+                context.Admins.Add(new AdminUser
+                {
+                    Username = "MARCHAL",
+                    PasswordHash = hash,
+                    Salt = salt,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // Seed default admin user DEXTER (password: 2000)
+            if (!context.Admins.Any(a => a.Username == "DEXTER"))
             {
                 string salt = Guid.NewGuid().ToString("N");
                 string hash = HashPassword("2000", salt);
