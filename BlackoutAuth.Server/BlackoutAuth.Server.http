@@ -1,0 +1,6 @@
+@BlackoutAuth.Server_HostAddress = http://localhost:5132
+
+GET {{BlackoutAuth.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

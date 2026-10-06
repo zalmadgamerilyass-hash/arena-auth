@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "BlackoutAuth.Demo.CSharp/1.0.0": {
+        "dependencies": {
+          "BlackoutAuth.SDK.CSharp": "1.0.0"
+        },
+        "runtime": {
+          "BlackoutAuth.Demo.CSharp.dll": {}
+        }
+      },
+      "BlackoutAuth.SDK.CSharp/1.0.0": {
+        "runtime": {
+          "BlackoutAuth.SDK.CSharp.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "BlackoutAuth.Demo.CSharp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "BlackoutAuth.SDK.CSharp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,5 @@
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Demo.CSharp\obj\Release\net9.0\BlackoutAuth.Demo.CSharp.csproj.AssemblyReference.cache
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Demo.CSharp\obj\Release\net9.0\BlackoutAuth.Demo.CSharp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Demo.CSharp\obj\Release\net9.0\BlackoutAuth.Demo.CSharp.AssemblyInfoInputs.cache
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Demo.CSharp\obj\Release\net9.0\BlackoutAuth.Demo.CSharp.AssemblyInfo.cs
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Demo.CSharp\obj\Release\net9.0\BlackoutAuth.Demo.CSharp.csproj.CoreCompileInputs.cache

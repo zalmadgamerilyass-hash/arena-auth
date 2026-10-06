@@ -1,0 +1,11 @@
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\bin\Debug\net9.0\BlackoutAuth.SDK.CSharp.deps.json
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\bin\Debug\net9.0\BlackoutAuth.SDK.CSharp.dll
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\bin\Debug\net9.0\BlackoutAuth.SDK.CSharp.pdb
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\BlackoutAuth.SDK.CSharp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\BlackoutAuth.SDK.CSharp.AssemblyInfoInputs.cache
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\BlackoutAuth.SDK.CSharp.AssemblyInfo.cs
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\BlackoutAuth.SDK.CSharp.csproj.CoreCompileInputs.cache
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\BlackoutAuth.SDK.CSharp.dll
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\refint\BlackoutAuth.SDK.CSharp.dll
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\BlackoutAuth.SDK.CSharp.pdb
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Debug\net9.0\ref\BlackoutAuth.SDK.CSharp.dll
