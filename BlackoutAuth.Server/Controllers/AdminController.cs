@@ -11,10 +11,15 @@ namespace BlackoutAuth.Server.Controllers
     public class AdminController : ControllerBase
     {
         private readonly AuthDbContext _db;
-        private static readonly Dictionary<string, DateTime> _adminSessions = new();
+
+        // Maps token -> (username, expiry)
+        private static readonly Dictionary<string, (string Username, DateTime Expiry)> _adminSessions = new();
+
+        // Rate limiting: maps IP -> block-until time
         private static readonly Dictionary<string, DateTime> _failedAdminLogins = new();
-        // Track current admin per session - for isolation
-        private static string? _currentAdminUsername;
+
+        // Maps username -> active token (for 1-session-per-user enforcement)
+        private static readonly Dictionary<string, string> _userActiveToken = new();
 
         public AdminController(AuthDbContext db)
         {
@@ -31,38 +36,103 @@ namespace BlackoutAuth.Server.Controllers
         public record VariableRequest(string AppId, string Name, string Value, int MinLevel);
         public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
-        private static string? GetCurrentAdminUsername()
+        /// <summary>
+        /// Resolves the admin username for the current request from the X-Admin-Token header.
+        /// Returns null if the token is missing or expired.
+        /// </summary>
+        private string? GetCurrentAdminUsername()
         {
-            return _currentAdminUsername;
+            string? token = Request.Headers["X-Admin-Token"].FirstOrDefault();
+            if (string.IsNullOrEmpty(token)) return null;
+
+            lock (_adminSessions)
+            {
+                if (_adminSessions.TryGetValue(token, out var entry))
+                {
+                    if (DateTime.UtcNow < entry.Expiry)
+                        return entry.Username;
+
+                    // Expired — clean up
+                    _adminSessions.Remove(token);
+                }
+            }
+            return null;
         }
 
-        private static void SetCurrentAdminUsername(string username)
-        {
-            _currentAdminUsername = username;
-        }
+        private bool IsAdminAuthenticated() => GetCurrentAdminUsername() != null;
 
-        private static IQueryable<Application> ApplyAdminFilter(IQueryable<Application> query)
+        private IQueryable<Application> ApplyAdminFilter(IQueryable<Application> query)
         {
             string? adminUser = GetCurrentAdminUsername();
             if (!string.IsNullOrEmpty(adminUser))
-            {
                 return query.Where(a => a.AdminUsername == adminUser);
-            }
             return query;
         }
 
-        private static IQueryable<LicenseKey> ApplyAdminFilter(IQueryable<LicenseKey> query)
+        private IQueryable<LicenseKey> ApplyAdminFilter(IQueryable<LicenseKey> query)
         {
             string? adminUser = GetCurrentAdminUsername();
             if (!string.IsNullOrEmpty(adminUser))
             {
-                // Filter license keys by applications belonging to this admin
-                return query.Where(k => _db.Applications.Where(a => a.AdminUsername == adminUser).Select(a => a.Id).Contains(k.AppId));
+                var ownedAppIds = _db.Applications
+                    .Where(a => a.AdminUsername == adminUser)
+                    .Select(a => a.Id);
+                return query.Where(k => ownedAppIds.Contains(k.AppId));
             }
             return query;
         }
 
-        private AuthDbContext context => _db;
+        private IQueryable<AppUser> ApplyAdminFilter(IQueryable<AppUser> query)
+        {
+            string? adminUser = GetCurrentAdminUsername();
+            if (!string.IsNullOrEmpty(adminUser))
+            {
+                var ownedAppIds = _db.Applications
+                    .Where(a => a.AdminUsername == adminUser)
+                    .Select(a => a.Id);
+                return query.Where(u => ownedAppIds.Contains(u.AppId));
+            }
+            return query;
+        }
+
+        private IQueryable<CloudVariable> ApplyAdminFilter(IQueryable<CloudVariable> query)
+        {
+            string? adminUser = GetCurrentAdminUsername();
+            if (!string.IsNullOrEmpty(adminUser))
+            {
+                var ownedAppIds = _db.Applications
+                    .Where(a => a.AdminUsername == adminUser)
+                    .Select(a => a.Id);
+                return query.Where(v => ownedAppIds.Contains(v.AppId));
+            }
+            return query;
+        }
+
+        private IQueryable<ProtectedFile> ApplyAdminFilter(IQueryable<ProtectedFile> query)
+        {
+            string? adminUser = GetCurrentAdminUsername();
+            if (!string.IsNullOrEmpty(adminUser))
+            {
+                var ownedAppIds = _db.Applications
+                    .Where(a => a.AdminUsername == adminUser)
+                    .Select(a => a.Id);
+                return query.Where(f => ownedAppIds.Contains(f.AppId));
+            }
+            return query;
+        }
+
+        private IQueryable<SecurityLog> ApplyAdminFilter(IQueryable<SecurityLog> query)
+        {
+            string? adminUser = GetCurrentAdminUsername();
+            if (!string.IsNullOrEmpty(adminUser))
+            {
+                var ownedAppIds = _db.Applications
+                    .Where(a => a.AdminUsername == adminUser)
+                    .Select(a => a.Id);
+                return query.Where(l => ownedAppIds.Contains(l.AppId));
+            }
+            return query;
+        }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AdminLoginRequest req)
@@ -81,7 +151,6 @@ namespace BlackoutAuth.Server.Controllers
                     }
                     else
                     {
-                        // Block expired, reset counter
                         _failedAdminLogins.Remove(ipAddress);
                     }
                 }
@@ -90,7 +159,6 @@ namespace BlackoutAuth.Server.Controllers
             var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Username.ToLower() == req.Username.ToLower());
             if (admin == null)
             {
-                // Log failed attempt and add to rate limiter
                 lock (_failedAdminLogins)
                 {
                     _failedAdminLogins[ipAddress] = DateTime.UtcNow.AddMinutes(15);
@@ -101,7 +169,6 @@ namespace BlackoutAuth.Server.Controllers
             string hash = AuthDbContext.HashPassword(req.Password, admin.Salt);
             if (hash != admin.PasswordHash)
             {
-                // Log failed attempt and add to rate limiter
                 lock (_failedAdminLogins)
                 {
                     _failedAdminLogins[ipAddress] = DateTime.UtcNow.AddMinutes(15);
@@ -116,13 +183,18 @@ namespace BlackoutAuth.Server.Controllers
             }
 
             string token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+
             lock (_adminSessions)
             {
-                _adminSessions[token] = DateTime.UtcNow.AddHours(12);
-            }
+                // Enforce max 1 active session per user: revoke any existing session for this admin
+                if (_userActiveToken.TryGetValue(admin.Username, out string? oldToken))
+                {
+                    _adminSessions.Remove(oldToken);
+                }
 
-            // *** NEW: Set current admin username for isolation ***
-            SetCurrentAdminUsername(admin.Username);
+                _adminSessions[token] = (admin.Username, DateTime.UtcNow.AddHours(12));
+                _userActiveToken[admin.Username] = token;
+            }
 
             admin.LastLogin = DateTime.UtcNow;
             await _db.SaveChangesAsync();
@@ -133,9 +205,10 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
-            var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Username == GetCurrentAdminUsername());
+            var admin = await _db.Admins.FirstOrDefaultAsync(a => a.Username == adminUser);
             if (admin == null) return NotFound();
 
             string currentHash = AuthDbContext.HashPassword(req.CurrentPassword, admin.Salt);
@@ -155,9 +228,9 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var userQuery = _db.Users.AsQueryable();
-            var keyQuery = _db.LicenseKeys.AsQueryable();
-            var logQuery = _db.SecurityLogs.AsQueryable();
+            var userQuery = ApplyAdminFilter(_db.Users.AsQueryable());
+            var keyQuery = ApplyAdminFilter(_db.LicenseKeys.AsQueryable());
+            var logQuery = ApplyAdminFilter(_db.SecurityLogs.AsQueryable());
 
             if (!string.IsNullOrEmpty(appId))
             {
@@ -170,7 +243,7 @@ namespace BlackoutAuth.Server.Controllers
             int totalKeys = await keyQuery.CountAsync();
             int unusedKeys = await keyQuery.CountAsync(k => k.Status == "Unused");
             int bannedUsers = await userQuery.CountAsync(u => u.IsBanned);
-            int totalApps = await _db.Applications.CountAsync();
+            int totalApps = await ApplyAdminFilter(_db.Applications.AsQueryable()).CountAsync();
 
             var todayUtc = DateTime.UtcNow.Date;
             int loginsToday = await logQuery.CountAsync(l => l.Action == "LOGIN_SUCCESS" && l.Timestamp >= todayUtc);
@@ -223,7 +296,8 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("apps")]
         public async Task<IActionResult> CreateApp([FromBody] AppCreateRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             var app = new Application
             {
@@ -233,7 +307,7 @@ namespace BlackoutAuth.Server.Controllers
                 HwidLockEnabled = req.HwidLockEnabled,
                 DownloadUrl = req.DownloadUrl,
                 DiscordWebhookUrl = req.DiscordWebhookUrl,
-                AdminUsername = GetCurrentAdminUsername() // *** CRITICAL: Assign app to current admin ***
+                AdminUsername = adminUser // Assign app to the currently authenticated admin
             };
 
             _db.Applications.Add(app);
@@ -245,10 +319,11 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPut("apps/{id}")]
         public async Task<IActionResult> UpdateApp(string id, [FromBody] AppUpdateRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
-            var app = await _db.Applications.FindAsync(id);
-            if (app == null) return NotFound(new { success = false, message = "Application not found." });
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == id && a.AdminUsername == adminUser);
+            if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             app.Name = req.Name;
             app.Version = req.Version;
@@ -264,10 +339,11 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("apps/{id}/regen-secret")]
         public async Task<IActionResult> RegenerateSecret(string id)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
-            var app = await _db.Applications.FindAsync(id);
-            if (app == null) return NotFound();
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == id && a.AdminUsername == adminUser);
+            if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             app.Secret = CryptoService.GenerateRandomKey(32);
             await _db.SaveChangesAsync();
@@ -278,10 +354,11 @@ namespace BlackoutAuth.Server.Controllers
         [HttpDelete("apps/{id}")]
         public async Task<IActionResult> DeleteApp(string id)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
-            var app = await _db.Applications.FindAsync(id);
-            if (app == null) return NotFound();
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == id && a.AdminUsername == adminUser);
+            if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             // Cascade delete app artifacts
             var keys = await _db.LicenseKeys.Where(k => k.AppId == id).ToListAsync();
@@ -319,10 +396,11 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("keys/generate")]
         public async Task<IActionResult> GenerateKeys([FromBody] KeyGenerateRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == GetCurrentAdminUsername());
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == adminUser);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             int count = Math.Clamp(req.Count, 1, 100);
@@ -355,10 +433,15 @@ namespace BlackoutAuth.Server.Controllers
         [HttpDelete("keys/{key}")]
         public async Task<IActionResult> DeleteKey(string key)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
-            var item = await _db.LicenseKeys.FindAsync(key);
+            var item = await _db.LicenseKeys.FirstOrDefaultAsync(k => k.Key == key);
             if (item == null) return NotFound();
+
+            // Ensure the key belongs to an app owned by this admin
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == item.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             _db.LicenseKeys.Remove(item);
             await _db.SaveChangesAsync();
@@ -369,10 +452,14 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("keys/{key}/toggle-status")]
         public async Task<IActionResult> ToggleKeyStatus(string key)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
-            var item = await _db.LicenseKeys.FindAsync(key);
+            var item = await _db.LicenseKeys.FirstOrDefaultAsync(k => k.Key == key);
             if (item == null) return NotFound();
+
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == item.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             item.Status = item.Status == "Paused" ? "Unused" : "Paused";
             await _db.SaveChangesAsync();
@@ -418,10 +505,11 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("users/create")]
         public async Task<IActionResult> CreateUserDirect([FromBody] UserCreateRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == GetCurrentAdminUsername());
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == adminUser);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             var existing = await _db.Users.FirstOrDefaultAsync(u => u.AppId == req.AppId && u.Username.ToLower() == req.Username.ToLower());
@@ -461,10 +549,15 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("users/{id}/reset-hwid")]
         public async Task<IActionResult> ResetHwid(int id)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
+
+            // Verify the user belongs to an app owned by this admin
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             string oldHwid = user.Hwid ?? "None";
             user.Hwid = null;
@@ -486,10 +579,14 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("users/{id}/ban")]
         public async Task<IActionResult> BanUser(int id, [FromBody] UserBanRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
+
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             user.IsBanned = req.Banned;
             user.BanReason = req.Reason ?? (req.Banned ? "Banned by administrator" : null);
@@ -511,10 +608,14 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("users/{id}/extend")]
         public async Task<IActionResult> ExtendUser(int id, [FromBody] UserExtendRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
+
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             var baseDate = user.ExpiryDate > DateTime.UtcNow ? user.ExpiryDate : DateTime.UtcNow;
             user.ExpiryDate = baseDate.AddDays(req.Days);
@@ -526,10 +627,14 @@ namespace BlackoutAuth.Server.Controllers
         [HttpDelete("users/{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
+
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             _db.Users.Remove(user);
             await _db.SaveChangesAsync();
@@ -553,10 +658,11 @@ namespace BlackoutAuth.Server.Controllers
         [HttpPost("vars")]
         public async Task<IActionResult> SaveVariable([FromBody] VariableRequest req)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == GetCurrentAdminUsername());
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == adminUser);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             var item = await _db.CloudVariables.FirstOrDefaultAsync(v => v.AppId == req.AppId && v.Name == req.Name);
@@ -586,10 +692,14 @@ namespace BlackoutAuth.Server.Controllers
         [HttpDelete("vars/{id}")]
         public async Task<IActionResult> DeleteVariable(int id)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             var item = await _db.CloudVariables.FindAsync(id);
             if (item == null) return NotFound();
+
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == item.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             _db.CloudVariables.Remove(item);
             await _db.SaveChangesAsync();
@@ -623,10 +733,11 @@ namespace BlackoutAuth.Server.Controllers
         [RequestSizeLimit(50_000_000)] // 50MB
         public async Task<IActionResult> UploadFile([FromForm] IFormFile file, [FromForm] string appId, [FromForm] int minLevel = 1)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == appId && a.AdminUsername == GetCurrentAdminUsername());
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == appId && a.AdminUsername == adminUser);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             if (file == null || file.Length == 0) return BadRequest("File is empty.");
@@ -653,10 +764,14 @@ namespace BlackoutAuth.Server.Controllers
         [HttpDelete("files/{id}")]
         public async Task<IActionResult> DeleteFile(string id)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
+            string? adminUser = GetCurrentAdminUsername();
+            if (adminUser == null) return Unauthorized();
 
             var file = await _db.ProtectedFiles.FindAsync(id);
             if (file == null) return NotFound();
+
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == file.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             _db.ProtectedFiles.Remove(file);
             await _db.SaveChangesAsync();

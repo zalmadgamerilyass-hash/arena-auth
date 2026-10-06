@@ -275,5 +275,3 @@ namespace BlackoutAuth.Server.Data
         }
     }
 }
-    }
-}
