@@ -121,6 +121,9 @@ namespace BlackoutAuth.Server.Controllers
                 _adminSessions[token] = DateTime.UtcNow.AddHours(12);
             }
 
+            // *** NEW: Set current admin username for isolation ***
+            SetCurrentAdminUsername(admin.Username);
+
             admin.LastLogin = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
@@ -213,7 +216,7 @@ namespace BlackoutAuth.Server.Controllers
         public async Task<IActionResult> GetApps()
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
-            var apps = await _db.Applications.OrderByDescending(a => a.CreatedAt).ToListAsync();
+            var apps = await ApplyAdminFilter(_db.Applications).OrderByDescending(a => a.CreatedAt).ToListAsync();
             return Ok(new { success = true, apps });
         }
 
@@ -230,7 +233,7 @@ namespace BlackoutAuth.Server.Controllers
                 HwidLockEnabled = req.HwidLockEnabled,
                 DownloadUrl = req.DownloadUrl,
                 DiscordWebhookUrl = req.DiscordWebhookUrl,
-                CreatedAt = DateTime.UtcNow
+                AdminUsername = GetCurrentAdminUsername() // *** CRITICAL: Assign app to current admin ***
             };
 
             _db.Applications.Add(app);
@@ -302,7 +305,7 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var query = _db.LicenseKeys.AsQueryable();
+            var query = ApplyAdminFilter(_db.LicenseKeys.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
                 query = query.Where(k => k.AppId == appId);
 
@@ -318,8 +321,9 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var app = await _db.Applications.FindAsync(req.AppId);
-            if (app == null) return NotFound(new { success = false, message = "Application not found." });
+            // Verify app exists and belongs to current admin
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == GetCurrentAdminUsername());
+            if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             int count = Math.Clamp(req.Count, 1, 100);
             var generatedKeys = new List<LicenseKey>();
@@ -382,14 +386,14 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var query = _db.Users.AsQueryable();
+            var userQuery = ApplyAdminFilter(_db.Users.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
-                query = query.Where(u => u.AppId == appId);
+                userQuery = userQuery.Where(u => u.AppId == appId);
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(u => u.Username.Contains(search) || (u.Hwid != null && u.Hwid.Contains(search)));
+                userQuery = userQuery.Where(u => u.Username.Contains(search) || (u.Hwid != null && u.Hwid.Contains(search)));
 
-            var users = await query.OrderByDescending(u => u.CreatedAt).Take(200).ToListAsync();
+            var users = await userQuery.OrderByDescending(u => u.CreatedAt).Take(200).ToListAsync();
 
             var sanitized = users.Select(u => new
             {
@@ -416,8 +420,9 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var app = await _db.Applications.FindAsync(req.AppId);
-            if (app == null) return NotFound(new { success = false, message = "Application not found." });
+            // Verify app exists and belongs to current admin
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == GetCurrentAdminUsername());
+            if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             var existing = await _db.Users.FirstOrDefaultAsync(u => u.AppId == req.AppId && u.Username.ToLower() == req.Username.ToLower());
             if (existing != null)
@@ -537,7 +542,7 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var query = _db.CloudVariables.AsQueryable();
+            var query = ApplyAdminFilter(_db.CloudVariables.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
                 query = query.Where(v => v.AppId == appId);
 
@@ -549,6 +554,10 @@ namespace BlackoutAuth.Server.Controllers
         public async Task<IActionResult> SaveVariable([FromBody] VariableRequest req)
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
+
+            // Verify app exists and belongs to current admin
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == GetCurrentAdminUsername());
+            if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             var item = await _db.CloudVariables.FirstOrDefaultAsync(v => v.AppId == req.AppId && v.Name == req.Name);
             if (item == null)
@@ -593,7 +602,7 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var query = _db.ProtectedFiles.AsQueryable();
+            var query = ApplyAdminFilter(_db.ProtectedFiles.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
                 query = query.Where(f => f.AppId == appId);
 
@@ -615,6 +624,11 @@ namespace BlackoutAuth.Server.Controllers
         public async Task<IActionResult> UploadFile([FromForm] IFormFile file, [FromForm] string appId, [FromForm] int minLevel = 1)
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
+
+            // Verify app exists and belongs to current admin
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == appId && a.AdminUsername == GetCurrentAdminUsername());
+            if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
+
             if (file == null || file.Length == 0) return BadRequest("File is empty.");
 
             using var ms = new MemoryStream();
@@ -655,7 +669,7 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var query = _db.SecurityLogs.AsQueryable();
+            var query = ApplyAdminFilter(_db.SecurityLogs.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
                 query = query.Where(l => l.AppId == appId);
 
@@ -671,7 +685,7 @@ namespace BlackoutAuth.Server.Controllers
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
 
-            var query = _db.SecurityLogs.AsQueryable();
+            var query = ApplyAdminFilter(_db.SecurityLogs.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
                 query = query.Where(l => l.AppId == appId);
 
