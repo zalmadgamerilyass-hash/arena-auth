@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj": {}
+    "c:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj": {
+    "c:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj",
+        "projectUniqueName": "c:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj",
         "projectName": "BlackoutAuth.SDK.CSharp",
-        "projectPath": "C:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj",
+        "projectPath": "c:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\BlackoutAuth.SDK.CSharp.csproj",
         "packagesPath": "C:\\Users\\DEXTER\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\obj\\",
+        "outputPath": "c:\\Users\\DEXTER\\Desktop\\BLACKOUT AUTH\\BlackoutAuth.SDK.CSharp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

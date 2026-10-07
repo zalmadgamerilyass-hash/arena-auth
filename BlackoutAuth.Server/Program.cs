@@ -45,6 +45,14 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("AllowAll");
 
+// GLOBAL DEXTER CREDIT HEADERS
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Developer", "DEXTER");
+    context.Response.Headers.Append("X-Powered-By", "Blackout Auth - Developed by DEXTER");
+    await next();
+});
+
 // Serve static files from wwwroot (Web Dashboard)
 app.UseDefaultFiles();
 app.UseStaticFiles();

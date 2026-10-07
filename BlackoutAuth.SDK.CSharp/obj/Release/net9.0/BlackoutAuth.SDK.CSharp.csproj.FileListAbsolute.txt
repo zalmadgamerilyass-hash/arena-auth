@@ -9,3 +9,4 @@ C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Release\net9.0
 C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Release\net9.0\refint\BlackoutAuth.SDK.CSharp.dll
 C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Release\net9.0\BlackoutAuth.SDK.CSharp.pdb
 C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Release\net9.0\ref\BlackoutAuth.SDK.CSharp.dll
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.SDK.CSharp\obj\Release\net9.0\BlackoutAuth.SDK.CSharp.sourcelink.json

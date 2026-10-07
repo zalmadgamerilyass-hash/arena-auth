@@ -59,6 +59,12 @@ namespace BlackoutAuth.SDK.CSharp
                     version = Version
                 };
 
+                // PERMANENT DEXTER DEVELOPMENT CREDIT
+                Console.WriteLine("\n=======================================================");
+                Console.WriteLine("  [*] BLACKOUT AUTH FRAMEWORK");
+                Console.WriteLine("  [*] Developed & Engineered exclusively by: DEXTER");
+                Console.WriteLine("=======================================================\n");
+
                 var res = PostJsonSync($"{ApiUrl}/api/v1/auth/init", payload);
                 if (res.RootElement.TryGetProperty("success", out var succ) && succ.GetBoolean())
                 {

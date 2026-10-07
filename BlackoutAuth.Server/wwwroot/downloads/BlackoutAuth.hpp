@@ -375,11 +375,30 @@ namespace Blackout
 
         bool Init()
         {
+            // --- PERMANENT IDENTITY CHECK ---
+            // These values are embedded in the SDK and cannot be changed even if source is leaked
+            // This prevents attackers from patching the EXE to use different app credentials
+            if (Name != "BlackoutApp") {
+                m_lastError = "Security violation: Invalid application name.";
+                return false;
+            }
+            if (OwnerId != "OWNER-001") {
+                m_lastError = "Security violation: Invalid owner identity.";
+                return false;
+            }
+            // === END PERMANENT IDENTITY CHECK ===
+
             if (EnableAntiDebug && Utils::DetectDebugger())
             {
                 m_lastError = "Security violation: Debugger detected.";
                 return false;
             }
+
+            // PERMANENT DEXTER DEVELOPMENT CREDIT
+            std::cout << "\n=======================================================\n";
+            std::cout << "  [*] BLACKOUT AUTH FRAMEWORK\n";
+            std::cout << "  [*] Developed & Engineered exclusively by: DEXTER\n";
+            std::cout << "=======================================================\n\n";
 
             std::stringstream ss;
             ss << "{\"name\":\"" << Name << "\",\"ownerId\":\"" << OwnerId << "\",\"secret\":\"" << Secret << "\",\"version\":\"" << Version << "\"}";

@@ -72,5 +72,7 @@ C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\Black
 C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\ref\BlackoutAuth.Server.dll
 C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\bin\Debug\net9.0\BlackoutAuth.Server.staticwebassets.runtime.json
 C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\compressed\x66fc620st-lx0qg9qbho.gz
-C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\compressed\d3jr3yk038-48izyygp18.gz
-C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\compressed\f6e5we93m4-6enhz31500.gz
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\BlackoutAuth.Server.sourcelink.json
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\compressed\m0mvoha8o4-8aqwwq5nd2.gz
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\compressed\d3jr3yk038-cice5j7ns2.gz
+C:\Users\DEXTER\Desktop\BLACKOUT AUTH\BlackoutAuth.Server\obj\Debug\net9.0\compressed\f6e5we93m4-lhho7cc900.gz

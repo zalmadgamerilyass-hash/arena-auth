@@ -89,6 +89,19 @@ async function initDashboard() {
   if (localStorage.getItem('blackout_hide_tour') !== 'true') {
     setTimeout(openWalkthroughModal, 400);
   }
+
+  // ANTI-SKID / WATERMARK PROTECTION: Ensure DEXTER credit cannot be removed
+  setInterval(() => {
+    const cred = document.getElementById('dexter-credit');
+    if (!cred || !cred.innerText.includes('DEXTER')) {
+      document.body.innerHTML = `
+        <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#000;color:red;font-family:monospace;flex-direction:column;text-align:center;">
+          <h1 style="font-size:3rem;margin-bottom:10px;">🚨 COPYRIGHT VIOLATION 🚨</h1>
+          <p style="font-size:1.2rem;color:#ccc;">You attempted to remove or modify the developer credits.</p>
+          <p style="font-size:1.5rem;margin-top:20px;">This framework was exclusively Developed & Engineered by <strong>DEXTER</strong>.</p>
+        </div>`;
+    }
+  }, 2000);
 }
 
 function switchTab(tabId) {

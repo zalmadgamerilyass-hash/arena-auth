@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BlackoutAuth.SDK.CSharp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+13e6cab88ee84c26ae94213fc88fdfab95ef4d80")]
 [assembly: System.Reflection.AssemblyProductAttribute("BlackoutAuth.SDK.CSharp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BlackoutAuth.SDK.CSharp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
