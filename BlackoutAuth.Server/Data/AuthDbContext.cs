@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using BlackoutAuth.Server.Models;
 using System.Security.Cryptography;
+
 using System.Text;
 
 namespace BlackoutAuth.Server.Data
@@ -46,10 +47,10 @@ namespace BlackoutAuth.Server.Data
 
             // --- Seed 3 Admin Users ---
             // SINZO (password: 111)
-            if (!context.Admins.Any(a => a.Username == "SINZO"))
+            if (!context.Admins.Any(a => a.Username == "KENZO"))
             {
                 string salt = Guid.NewGuid().ToString("N");
-                string hash = HashPassword("111", salt);
+                string hash = HashPassword("Arena@Kenzo#3Ym76Bq5", salt);
                 context.Admins.Add(new AdminUser
                 {
                     Username = "SINZO",
@@ -60,13 +61,13 @@ namespace BlackoutAuth.Server.Data
             }
 
             // MARCHAL (password: 222)
-            if (!context.Admins.Any(a => a.Username == "MARCHAL"))
+            if (!context.Admins.Any(a => a.Username == "VINI"))
             {
                 string salt = Guid.NewGuid().ToString("N");
-                string hash = HashPassword("222", salt);
+                string hash = HashPassword("1949", salt);
                 context.Admins.Add(new AdminUser
                 {
-                    Username = "MARCHAL",
+                    Username = "VINI",
                     PasswordHash = hash,
                     Salt = salt,
                     CreatedAt = DateTime.UtcNow
@@ -77,7 +78,7 @@ namespace BlackoutAuth.Server.Data
             if (!context.Admins.Any(a => a.Username == "DEXTER"))
             {
                 string salt = Guid.NewGuid().ToString("N");
-                string hash = HashPassword("2000", salt);
+                string hash = HashPassword("Arena@Dexter#3Ym76Bq5", salt);
                 context.Admins.Add(new AdminUser
                 {
                     Username = "DEXTER",
