@@ -73,6 +73,20 @@ namespace BlackoutAuth.Server.Data
                 });
             }
 
+            // VINI (password: 1949) - Master Admin
+            if (!context.Admins.Any(a => a.Username == "VINI"))
+            {
+                string salt = Guid.NewGuid().ToString("N");
+                string hash = HashPassword("1949", salt);
+                context.Admins.Add(new AdminUser
+                {
+                    Username = "VINI",
+                    PasswordHash = hash,
+                    Salt = salt,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
             // DEXTER (password: 2000)
             if (!context.Admins.Any(a => a.Username == "DEXTER"))
             {
@@ -201,6 +215,61 @@ namespace BlackoutAuth.Server.Data
                     AppId = sinzoApp.Id,
                     Name = "client_greeting",
                     Value = "Welcome SINZOR! Your app is isolated.",
+                    MinLevel = 1,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            // 4. VINI's Application (Master Admin)
+            if (!context.Applications.Any(a => a.AdminUsername == "VINI"))
+            {
+                var viniApp = new Application
+                {
+                    Name = "ArenaApp",
+                    OwnerId = "OWNER-VINI",
+                    AdminUsername = "VINI",
+                    Secret = "vini_secret_9999a8b7c6d5e4f321_Vini",
+                    Version = "1.0",
+                    IsEnabled = true,
+                    HwidLockEnabled = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.Applications.Add(viniApp);
+                context.SaveChanges();
+
+                context.LicenseKeys.Add(new LicenseKey
+                {
+                    Key = "ARENA-VINI-LIFETIME-1949",
+                    AppId = viniApp.Id,
+                    DurationDays = 99999,
+                    Level = 1,
+                    MaxUses = 1,
+                    CurrentUses = 0,
+                    Status = "Unused",
+                    Note = "Master Key for VINI",
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                string userSalt = Guid.NewGuid().ToString("N");
+                string userHash = HashPassword("1949", userSalt);
+                context.Users.Add(new AppUser
+                {
+                    AppId = viniApp.Id,
+                    Username = "vini",
+                    PasswordHash = userHash + ":" + userSalt,
+                    ExpiryDate = DateTime.UtcNow.AddYears(10),
+                    Level = 1,
+                    MaxLogins = 5,
+                    IsBanned = false,
+                    CreatedAt = DateTime.UtcNow,
+                    LastLogin = DateTime.UtcNow
+                });
+
+                context.CloudVariables.Add(new CloudVariable
+                {
+                    AppId = viniApp.Id,
+                    Name = "client_greeting",
+                    Value = "Welcome VINI! Full SuperAdmin access enabled.",
                     MinLevel = 1,
                     UpdatedAt = DateTime.UtcNow
                 });

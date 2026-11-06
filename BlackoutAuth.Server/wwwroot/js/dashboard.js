@@ -1,3 +1,16 @@
+
+function applyRolePermissions() {
+  const currentAdmin = (localStorage.getItem('blackout_admin_username') || '').toUpperCase();
+  const usersNavBtn = document.querySelector('.nav-item[data-tab="users"]');
+  if (usersNavBtn) {
+    if (currentAdmin === 'VINI') {
+      usersNavBtn.style.display = 'flex';
+    } else {
+      usersNavBtn.style.display = 'none';
+    }
+  }
+}
+
 // ARENA AUTH - ADMINISTRATIVE CONTROL SCRIPT
 
 const API_BASE = '/api/admin';
@@ -46,6 +59,8 @@ async function handleLogin(e) {
       adminToken = data.token;
       localStorage.setItem('blackout_admin_token', adminToken);
       document.getElementById('adminNameDisplay').textContent = data.username || 'admin';
+      localStorage.setItem('blackout_admin_username', data.username || 'admin');
+      applyRolePermissions();
       hideLoginModal();
       initDashboard();
       showToast('Welcome back, Commander!', 'success');
@@ -62,6 +77,7 @@ async function handleLogin(e) {
 function logout() {
   adminToken = null;
   localStorage.removeItem('blackout_admin_token');
+  localStorage.removeItem('blackout_admin_username');
   showLoginModal();
   showToast('Logged out successfully.', 'info');
 }
@@ -81,6 +97,7 @@ function apiFetch(url, options = {}) {
 }
 
 async function initDashboard() {
+  applyRolePermissions();
   await loadApps();
   await loadStats();
   initChart();
@@ -105,6 +122,12 @@ async function initDashboard() {
 }
 
 function switchTab(tabId) {
+  const currentAdmin = (localStorage.getItem('blackout_admin_username') || '').toUpperCase();
+  if (tabId === 'users' && currentAdmin !== 'VINI') {
+    showToast('Access restricted: Users tab is only available for VINI.', 'error');
+    switchTab('dashboard');
+    return;
+  }
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 

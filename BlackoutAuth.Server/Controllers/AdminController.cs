@@ -64,7 +64,7 @@ namespace BlackoutAuth.Server.Controllers
         private IQueryable<Application> ApplyAdminFilter(IQueryable<Application> query)
         {
             string? adminUser = GetCurrentAdminUsername();
-            if (!string.IsNullOrEmpty(adminUser))
+            if (!string.IsNullOrEmpty(adminUser) && !adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
                 return query.Where(a => a.AdminUsername == adminUser);
             return query;
         }
@@ -72,7 +72,7 @@ namespace BlackoutAuth.Server.Controllers
         private IQueryable<LicenseKey> ApplyAdminFilter(IQueryable<LicenseKey> query)
         {
             string? adminUser = GetCurrentAdminUsername();
-            if (!string.IsNullOrEmpty(adminUser))
+            if (!string.IsNullOrEmpty(adminUser) && !adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
             {
                 var ownedAppIds = _db.Applications
                     .Where(a => a.AdminUsername == adminUser)
@@ -85,7 +85,7 @@ namespace BlackoutAuth.Server.Controllers
         private IQueryable<AppUser> ApplyAdminFilter(IQueryable<AppUser> query)
         {
             string? adminUser = GetCurrentAdminUsername();
-            if (!string.IsNullOrEmpty(adminUser))
+            if (!string.IsNullOrEmpty(adminUser) && !adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
             {
                 var ownedAppIds = _db.Applications
                     .Where(a => a.AdminUsername == adminUser)
@@ -400,7 +400,11 @@ namespace BlackoutAuth.Server.Controllers
             if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == adminUser);
+            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { success = false, message = "User creation is restricted exclusively to VINI." });
+            }
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             int count = Math.Clamp(req.Count, 1, 100);
@@ -472,6 +476,11 @@ namespace BlackoutAuth.Server.Controllers
         public async Task<IActionResult> GetUsers([FromQuery] string? appId, [FromQuery] string? search)
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
+            string? currentAdminUser = GetCurrentAdminUsername();
+            if (currentAdminUser == null || !currentAdminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { success = false, message = "Users management is restricted exclusively to VINI." });
+            }
 
             var userQuery = ApplyAdminFilter(_db.Users.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
