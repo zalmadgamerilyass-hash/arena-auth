@@ -367,16 +367,59 @@
         <div id="tab-users" class="tab-pane hidden space-y-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h3 class="text-lg font-bold text-white">Registered Users</h3>
-              <p class="text-xs text-slate-400 font-mono mt-0.5">Manage accounts, set expiry, device limits, reset HWID</p>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-users text-purple-400"></i>
+                <span>Registered Users & Passwords</span>
+              </h3>
+              <p class="text-xs text-slate-400 font-mono mt-0.5">All registered users, direct creation with passwords, and account management</p>
             </div>
             <div class="flex items-center space-x-3">
               <input type="text" id="userSearch" oninput="loadUsers()" placeholder="Search user, HWID..." class="search-input">
               <button onclick="openUserCreateModal()" class="btn-primary">
                 <i class="fa-solid fa-user-plus text-xs"></i>
-                <span>Create User</span>
+                <span>Modal Form</span>
               </button>
             </div>
+          </div>
+
+          <!-- DIRECT QUICK ADD USER WITH PASSWORD CARD -->
+          <div class="glass-panel p-5 border border-purple-500/30 bg-gradient-to-r from-purple-950/30 via-slate-900/60 to-[#0e111a] rounded-2xl shadow-xl">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-600/30 text-purple-300 flex items-center justify-center text-xs border border-purple-500/30"><i class="fa-solid fa-key"></i></span>
+                <span>Add User With Password (إضافة مستخدم جديد مع كلمة السر)</span>
+              </h4>
+              <span class="text-[10px] text-purple-400 font-mono bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">VINI Super Admin</span>
+            </div>
+            <form onsubmit="handleQuickUserCreate(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div>
+                <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Target Application</label>
+                <select id="quickUserAppId" required class="form-input text-xs py-2"></select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Username (اسم المستخدم)</label>
+                <input type="text" id="quickUserName" required placeholder="e.g. user1" class="form-input text-xs py-2">
+              </div>
+              <div>
+                <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Password (كلمة السر)</label>
+                <input type="text" id="quickUserPass" required placeholder="e.g. pass123" class="form-input text-xs py-2 font-mono">
+              </div>
+              <div>
+                <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Subscription Duration</label>
+                <select id="quickUserDuration" class="form-input text-xs py-2">
+                  <option value="30">30 Days (شهر)</option>
+                  <option value="90">90 Days (3 أشهر)</option>
+                  <option value="365">365 Days (سنة)</option>
+                  <option value="99999" selected>Lifetime (مدى الحياة)</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="btn-primary w-full h-[36px] flex items-center justify-center gap-2 text-xs font-bold shadow-lg shadow-purple-600/30">
+                  <i class="fa-solid fa-plus-circle"></i>
+                  <span>Add User Now</span>
+                </button>
+              </div>
+            </form>
           </div>
 
           <div class="glass-panel overflow-hidden">

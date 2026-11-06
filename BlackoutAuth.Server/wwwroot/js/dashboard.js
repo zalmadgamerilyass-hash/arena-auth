@@ -1173,3 +1173,37 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+
+
+async function handleQuickUserCreate(e) {
+  e.preventDefault();
+  const appId = document.getElementById('quickUserAppId').value;
+  const username = document.getElementById('quickUserName').value.trim();
+  const password = document.getElementById('quickUserPass').value;
+  const durationDays = parseInt(document.getElementById('quickUserDuration').value) || 99999;
+
+  if (!username || !password) {
+    showToast('Username and password are required.', 'error');
+    return;
+  }
+
+  try {
+    const data = await apiFetch(`${API_BASE}/users/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appId, username, password, durationDays, level: 1, maxLogins: 1 })
+    });
+
+    if (data.success) {
+      showToast(`User '${username}' created successfully!`, 'success');
+      document.getElementById('quickUserName').value = '';
+      document.getElementById('quickUserPass').value = '';
+      await loadUsers();
+      await loadStats();
+    } else {
+      showToast(data.message || 'Failed to create user.', 'error');
+    }
+  } catch (err) {
+    showToast('Error creating user account.', 'error');
+  }
+}
