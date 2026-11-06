@@ -518,7 +518,11 @@ namespace BlackoutAuth.Server.Controllers
             if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == adminUser);
+            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { success = false, message = "User creation is restricted exclusively to VINI." });
+            }
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             var existing = await _db.Users.FirstOrDefaultAsync(u => u.AppId == req.AppId && u.Username.ToLower() == req.Username.ToLower());

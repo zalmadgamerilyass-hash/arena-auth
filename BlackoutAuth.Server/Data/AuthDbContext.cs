@@ -101,6 +101,20 @@ namespace BlackoutAuth.Server.Data
                 });
             }
 
+
+            // DEXTER (password: 2000)
+            if (!context.Admins.Any(a => a.Username == "KENZO"))
+            {
+                string salt = Guid.NewGuid().ToString("N");
+                string hash = HashPassword("121", salt);
+                context.Admins.Add(new AdminUser
+                {
+                    Username = "DEXTER",
+                    PasswordHash = hash,
+                    Salt = salt,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
             context.SaveChanges(); // Save admins first to get their IDs/names
 
             // --- Seed Separate Applications for Each Admin ---
