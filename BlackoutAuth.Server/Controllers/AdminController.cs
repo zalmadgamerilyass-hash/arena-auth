@@ -824,8 +824,7 @@ namespace BlackoutAuth.Server.Controllers
         [HttpGet("download-sdk/{fileType}")]
         public IActionResult DownloadSdk(string fileType)
         {
-            if (!IsAdminAuthenticated()) return Unauthorized();
-
+            // SDK files are public client developer libraries - no auth restriction required for direct download
             string webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "downloads");
             string filePath = "";
             string contentType = "application/octet-stream";
@@ -835,20 +834,23 @@ namespace BlackoutAuth.Server.Controllers
             {
                 case "cpp":
                 case "hpp":
-                    filePath = Path.Combine(webRoot, "BlackoutAuth.hpp");
+                    filePath = Path.Combine(webRoot, "ArenaAuth.hpp");
+                    if (!System.IO.File.Exists(filePath)) filePath = Path.Combine(webRoot, "BlackoutAuth.hpp");
                     contentType = "text/plain";
-                    downloadFileName = "BlackoutAuth.hpp";
+                    downloadFileName = "ArenaAuth.hpp";
                     break;
                 case "csharp":
                 case "cs":
-                    filePath = Path.Combine(webRoot, "BlackoutApp.cs");
+                    filePath = Path.Combine(webRoot, "ArenaApp.cs");
+                    if (!System.IO.File.Exists(filePath)) filePath = Path.Combine(webRoot, "BlackoutApp.cs");
                     contentType = "text/plain";
-                    downloadFileName = "BlackoutApp.cs";
+                    downloadFileName = "ArenaApp.cs";
                     break;
                 case "dll":
-                    filePath = Path.Combine(webRoot, "BlackoutAuth.SDK.CSharp.dll");
+                    filePath = Path.Combine(webRoot, "ArenaAuth.SDK.CSharp.dll");
+                    if (!System.IO.File.Exists(filePath)) filePath = Path.Combine(webRoot, "BlackoutAuth.SDK.CSharp.dll");
                     contentType = "application/octet-stream";
-                    downloadFileName = "BlackoutAuth.SDK.CSharp.dll";
+                    downloadFileName = "ArenaAuth.SDK.CSharp.dll";
                     break;
                 default:
                     return BadRequest("Invalid SDK file requested.");
