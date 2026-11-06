@@ -46,13 +46,13 @@ namespace BlackoutAuth.Server.Data
 
             // --- Seed 3 Admin Users ---
             // SINZO (password: 111)
-            if (!context.Admins.Any(a => a.Username == "SINZO"))
+            if (!context.Admins.Any(a => a.Username == "KENZO"))
             {
                 string salt = Guid.NewGuid().ToString("N");
-                string hash = HashPassword("111", salt);
+                string hash = HashPassword("121", salt);
                 context.Admins.Add(new AdminUser
                 {
-                    Username = "SINZO",
+                    Username = "KENZO",
                     PasswordHash = hash,
                     Salt = salt,
                     CreatedAt = DateTime.UtcNow
