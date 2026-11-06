@@ -1,17 +1,4 @@
-
-function applyRolePermissions() {
-  const currentAdmin = (localStorage.getItem('blackout_admin_username') || '').toUpperCase();
-  const usersNavBtn = document.querySelector('.nav-item[data-tab="users"]');
-  if (usersNavBtn) {
-    if (currentAdmin === 'VINI') {
-      usersNavBtn.style.display = 'flex';
-    } else {
-      usersNavBtn.style.display = 'none';
-    }
-  }
-}
-
-// ARENA AUTH - ADMINISTRATIVE CONTROL SCRIPT
+// BLACKOUT AUTH - ADMINISTRATIVE CONTROL SCRIPT
 
 const API_BASE = '/api/admin';
 let adminToken = localStorage.getItem('blackout_admin_token') || null;
@@ -59,8 +46,6 @@ async function handleLogin(e) {
       adminToken = data.token;
       localStorage.setItem('blackout_admin_token', adminToken);
       document.getElementById('adminNameDisplay').textContent = data.username || 'admin';
-      localStorage.setItem('blackout_admin_username', data.username || 'admin');
-      applyRolePermissions();
       hideLoginModal();
       initDashboard();
       showToast('Welcome back, Commander!', 'success');
@@ -77,7 +62,6 @@ async function handleLogin(e) {
 function logout() {
   adminToken = null;
   localStorage.removeItem('blackout_admin_token');
-  localStorage.removeItem('blackout_admin_username');
   showLoginModal();
   showToast('Logged out successfully.', 'info');
 }
@@ -97,7 +81,6 @@ function apiFetch(url, options = {}) {
 }
 
 async function initDashboard() {
-  applyRolePermissions();
   await loadApps();
   await loadStats();
   initChart();
@@ -107,16 +90,21 @@ async function initDashboard() {
     setTimeout(openWalkthroughModal, 400);
   }
 
-  // Developer credit watermark check removed
+  // ANTI-SKID / WATERMARK PROTECTION: Ensure DEXTER credit cannot be removed
+  setInterval(() => {
+    const cred = document.getElementById('dexter-credit');
+    if (!cred || !cred.innerText.includes('DEXTER')) {
+      document.body.innerHTML = `
+        <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#000;color:red;font-family:monospace;flex-direction:column;text-align:center;">
+          <h1 style="font-size:3rem;margin-bottom:10px;">🚨 COPYRIGHT VIOLATION 🚨</h1>
+          <p style="font-size:1.2rem;color:#ccc;">You attempted to remove or modify the developer credits.</p>
+          <p style="font-size:1.5rem;margin-top:20px;">This framework was exclusively Developed & Engineered by <strong>DEXTER</strong>.</p>
+        </div>`;
+    }
+  }, 2000);
 }
 
 function switchTab(tabId) {
-  const currentAdmin = (localStorage.getItem('blackout_admin_username') || '').toUpperCase();
-  if (tabId === 'users' && currentAdmin !== 'VINI') {
-    showToast('Access restricted: Users tab is only available for VINI.', 'error');
-    switchTab('dashboard');
-    return;
-  }
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
@@ -1172,38 +1160,4 @@ function showToast(message, type = 'info') {
     toast.classList.add('opacity-0', 'translate-y-2');
     setTimeout(() => toast.remove(), 300);
   }, 3500);
-}
-
-
-async function handleQuickUserCreate(e) {
-  e.preventDefault();
-  const appId = document.getElementById('quickUserAppId').value;
-  const username = document.getElementById('quickUserName').value.trim();
-  const password = document.getElementById('quickUserPass').value;
-  const durationDays = parseInt(document.getElementById('quickUserDuration').value) || 99999;
-
-  if (!username || !password) {
-    showToast('Username and password are required.', 'error');
-    return;
-  }
-
-  try {
-    const data = await apiFetch(`${API_BASE}/users/create`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appId, username, password, durationDays, level: 1, maxLogins: 1 })
-    });
-
-    if (data.success) {
-      showToast(`User '${username}' created successfully!`, 'success');
-      document.getElementById('quickUserName').value = '';
-      document.getElementById('quickUserPass').value = '';
-      await loadUsers();
-      await loadStats();
-    } else {
-      showToast(data.message || 'Failed to create user.', 'error');
-    }
-  } catch (err) {
-    showToast('Error creating user account.', 'error');
-  }
 }

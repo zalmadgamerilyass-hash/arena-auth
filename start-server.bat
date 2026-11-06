@@ -1,8 +1,8 @@
 @echo off
-title Arena Auth Server
+title Blackout Auth Server
 cd /d "%~dp0BlackoutAuth.Server"
 echo =========================================================
-echo             Starting Arena Auth Server...
+echo             Starting Blackout Auth Server...
 echo =========================================================
 dotnet run
 pause

@@ -64,7 +64,7 @@ namespace BlackoutAuth.Server.Controllers
         private IQueryable<Application> ApplyAdminFilter(IQueryable<Application> query)
         {
             string? adminUser = GetCurrentAdminUsername();
-            if (!string.IsNullOrEmpty(adminUser) && !adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(adminUser))
                 return query.Where(a => a.AdminUsername == adminUser);
             return query;
         }
@@ -72,7 +72,7 @@ namespace BlackoutAuth.Server.Controllers
         private IQueryable<LicenseKey> ApplyAdminFilter(IQueryable<LicenseKey> query)
         {
             string? adminUser = GetCurrentAdminUsername();
-            if (!string.IsNullOrEmpty(adminUser) && !adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(adminUser))
             {
                 var ownedAppIds = _db.Applications
                     .Where(a => a.AdminUsername == adminUser)
@@ -85,7 +85,7 @@ namespace BlackoutAuth.Server.Controllers
         private IQueryable<AppUser> ApplyAdminFilter(IQueryable<AppUser> query)
         {
             string? adminUser = GetCurrentAdminUsername();
-            if (!string.IsNullOrEmpty(adminUser) && !adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(adminUser))
             {
                 var ownedAppIds = _db.Applications
                     .Where(a => a.AdminUsername == adminUser)
@@ -400,11 +400,7 @@ namespace BlackoutAuth.Server.Controllers
             if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { success = false, message = "User creation is restricted exclusively to VINI." });
-            }
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId);
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == adminUser);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             int count = Math.Clamp(req.Count, 1, 100);
@@ -476,11 +472,6 @@ namespace BlackoutAuth.Server.Controllers
         public async Task<IActionResult> GetUsers([FromQuery] string? appId, [FromQuery] string? search)
         {
             if (!IsAdminAuthenticated()) return Unauthorized();
-            string? currentAdminUser = GetCurrentAdminUsername();
-            if (currentAdminUser == null || !currentAdminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { success = false, message = "Users management is restricted exclusively to VINI." });
-            }
 
             var userQuery = ApplyAdminFilter(_db.Users.AsQueryable());
             if (!string.IsNullOrEmpty(appId))
@@ -490,13 +481,11 @@ namespace BlackoutAuth.Server.Controllers
                 userQuery = userQuery.Where(u => u.Username.Contains(search) || (u.Hwid != null && u.Hwid.Contains(search)));
 
             var users = await userQuery.OrderByDescending(u => u.CreatedAt).Take(200).ToListAsync();
-            var appMap = await _db.Applications.ToDictionaryAsync(a => a.Id, a => a.Name);
 
             var sanitized = users.Select(u => new
             {
                 u.Id,
                 u.AppId,
-                appName = appMap.TryGetValue(u.AppId, out var name) ? name : "App",
                 u.Username,
                 u.Hwid,
                 u.IpAddress,
@@ -520,11 +509,7 @@ namespace BlackoutAuth.Server.Controllers
             if (adminUser == null) return Unauthorized();
 
             // Verify app exists and belongs to current admin
-            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { success = false, message = "User creation is restricted exclusively to VINI." });
-            }
-            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId);
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == req.AppId && a.AdminUsername == adminUser);
             if (app == null) return NotFound(new { success = false, message = "Application not found or access denied." });
 
             var existing = await _db.Users.FirstOrDefaultAsync(u => u.AppId == req.AppId && u.Username.ToLower() == req.Username.ToLower());
@@ -570,11 +555,9 @@ namespace BlackoutAuth.Server.Controllers
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
 
-            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
-            {
-                var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
-                if (app == null) return Forbid();
-            }
+            // Verify the user belongs to an app owned by this admin
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             string oldHwid = user.Hwid ?? "None";
             user.Hwid = null;
@@ -602,11 +585,8 @@ namespace BlackoutAuth.Server.Controllers
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
 
-            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
-            {
-                var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
-                if (app == null) return Forbid();
-            }
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             user.IsBanned = req.Banned;
             user.BanReason = req.Reason ?? (req.Banned ? "Banned by administrator" : null);
@@ -634,11 +614,8 @@ namespace BlackoutAuth.Server.Controllers
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
 
-            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
-            {
-                var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
-                if (app == null) return Forbid();
-            }
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             var baseDate = user.ExpiryDate > DateTime.UtcNow ? user.ExpiryDate : DateTime.UtcNow;
             user.ExpiryDate = baseDate.AddDays(req.Days);
@@ -656,11 +633,8 @@ namespace BlackoutAuth.Server.Controllers
             var user = await _db.Users.FindAsync(id);
             if (user == null) return NotFound();
 
-            if (!adminUser.Equals("VINI", StringComparison.OrdinalIgnoreCase))
-            {
-                var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
-                if (app == null) return Forbid();
-            }
+            var app = await _db.Applications.FirstOrDefaultAsync(a => a.Id == user.AppId && a.AdminUsername == adminUser);
+            if (app == null) return Forbid();
 
             _db.Users.Remove(user);
             await _db.SaveChangesAsync();
