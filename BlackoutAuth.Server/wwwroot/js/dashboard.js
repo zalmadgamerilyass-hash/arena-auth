@@ -1,4 +1,4 @@
-// BLACKOUT AUTH - ADMINISTRATIVE CONTROL SCRIPT
+// ARENA AUTH - ADMINISTRATIVE CONTROL SCRIPT
 
 const API_BASE = '/api/admin';
 let adminToken = localStorage.getItem('blackout_admin_token') || null;

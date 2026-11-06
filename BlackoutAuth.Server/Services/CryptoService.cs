@@ -15,7 +15,7 @@ namespace BlackoutAuth.Server.Services
             return Convert.ToHexString(bytes).ToLowerInvariant();
         }
 
-        public static string GenerateLicenseKey(string prefix = "BLACKOUT", int parts = 4, int partLength = 4)
+        public static string GenerateLicenseKey(string prefix = "ARENA", int parts = 4, int partLength = 4)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             var result = new StringBuilder();
