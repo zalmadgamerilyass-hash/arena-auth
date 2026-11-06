@@ -91,7 +91,7 @@ namespace BlackoutAuth.Server.Data
             if (!context.Admins.Any(a => a.Username == "DEXTER"))
             {
                 string salt = Guid.NewGuid().ToString("N");
-                string hash = HashPassword("2000", salt);
+                string hash = HashPassword("1949", salt);
                 context.Admins.Add(new AdminUser
                 {
                     Username = "DEXTER",
