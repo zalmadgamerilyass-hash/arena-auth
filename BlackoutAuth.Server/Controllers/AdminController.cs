@@ -405,7 +405,7 @@ namespace BlackoutAuth.Server.Controllers
 
             int count = Math.Clamp(req.Count, 1, 100);
             var generatedKeys = new List<LicenseKey>();
-            string prefix = string.IsNullOrWhiteSpace(req.Prefix) ? "BLACKOUT" : req.Prefix.Trim().ToUpperInvariant();
+            string prefix = string.IsNullOrWhiteSpace(req.Prefix) ? "ARENA" : req.Prefix.Trim().ToUpperInvariant();
 
             for (int i = 0; i < count; i++)
             {
@@ -817,7 +817,7 @@ namespace BlackoutAuth.Server.Controllers
             if (!IsAdminAuthenticated()) return Unauthorized();
 
             string url = body.GetValueOrDefault("url", "");
-            await DiscordService.SendAlertAsync(url, "Webhook Test", "Blackout Auth Discord notification is working successfully!", 0x8B5CF6);
+            await DiscordService.SendAlertAsync(url, "Webhook Test", "Arena Auth Discord notification is working successfully!", 0x8B5CF6);
             return Ok(new { success = true, message = "Test notification sent." });
         }
 

@@ -1,4 +1,4 @@
-// BLACKOUT AUTH - ADMINISTRATIVE CONTROL SCRIPT
+// ARENA AUTH - ADMINISTRATIVE CONTROL SCRIPT
 
 const API_BASE = '/api/admin';
 let adminToken = localStorage.getItem('blackout_admin_token') || null;
@@ -495,7 +495,7 @@ function exportKeysTxt() {
   const blob = new Blob([text], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `blackout_keys_${Date.now()}.txt`;
+  a.download = `arena_keys_${Date.now()}.txt`;
   a.click();
   showToast(`Exported ${cachedKeys.length} keys to .txt`, 'success');
 }
@@ -921,23 +921,23 @@ function updateSdkCodeView() {
   const selectedAppId = sdkAppSel.value || (appsCache.length > 0 ? appsCache[0].id : '');
   const app = appsCache.find(a => a.id === selectedAppId) || (appsCache.length > 0 ? appsCache[0] : null);
 
-  const appName = app ? app.name : 'BlackoutApp';
+  const appName = app ? app.name : 'ArenaApp';
   const ownerId = app ? app.ownerId : 'OWNER-001';
-  const secret = app ? app.secret : 'blackout_secret_9999a8b7c6d5e4f321';
+  const secret = app ? app.secret : 'arena_secret_9999a8b7c6d5e4f321';
   const version = app ? app.version : '1.0';
   const apiUrl = window.location.origin;
 
   // C# Snippets
   const csLicense = 
 `using System;
-using BlackoutAuth.SDK.CSharp;
+using ArenaAuth.SDK.CSharp;
 
 class Program
 {
     static void Main()
     {
-        // 1. Initialize Blackout Client with your app credentials & enable Anti-Debug
-        var auth = new BlackoutApp(
+        // 1. Initialize Arena Client with your app credentials & enable Anti-Debug
+        var auth = new ArenaApp(
             name: "${appName}",
             ownerId: "${ownerId}",
             secret: "${secret}",
@@ -980,9 +980,9 @@ class Program
 
   const csUserPass = 
 `using System;
-using BlackoutAuth.SDK.CSharp;
+using ArenaAuth.SDK.CSharp;
 
-var auth = new BlackoutApp(
+var auth = new ArenaApp(
     "${appName}", 
     "${ownerId}", 
     "${secret}", 
@@ -1009,7 +1009,7 @@ if (auth.Login(user, pass))
 }
 
 // Method B: Or Register a new user account with a license key
-// if (auth.Register(user, pass, "BLACKOUT-LICENSE-KEY")) { ... }`;
+// if (auth.Register(user, pass, "ARENA-LICENSE-KEY")) { ... }`;
 
   const csCloudVar = 
 `// Fetch encrypted cloud variable from server (decrypted locally in memory)
@@ -1028,12 +1028,12 @@ auth.Log("User initialized protected module.", "INFO");`;
   // C++ Snippets
   const cppLicense = 
 `#include <iostream>
-#include "BlackoutAuth.hpp" // Header-only! Zero dependencies (Native WinHTTP + BCrypt)
+#include "ArenaAuth.hpp" // Header-only! Zero dependencies (Native WinHTTP + BCrypt)
 
 int main()
 {
-    // 1. Initialize Blackout Client with your app credentials
-    Blackout::Auth auth(
+    // 1. Initialize Arena Client with your app credentials
+    Arena::Auth auth(
         "${appName}",
         "${ownerId}",
         "${secret}",
@@ -1077,9 +1077,9 @@ int main()
 
   const cppUserPass = 
 `#include <iostream>
-#include "BlackoutAuth.hpp"
+#include "ArenaAuth.hpp"
 
-Blackout::Auth auth("${appName}", "${ownerId}", "${secret}", "${version}", "${apiUrl}");
+Arena::Auth auth("${appName}", "${ownerId}", "${secret}", "${version}", "${apiUrl}");
 if (!auth.Init()) return 1;
 
 // Method A: Login with Username & Password
@@ -1090,7 +1090,7 @@ if (auth.Login("user", "password"))
 }
 
 // Method B: Or Register a new user account
-// auth.Register("username", "password", "BLACKOUT-LICENSE-KEY");`;
+// auth.Register("username", "password", "ARENA-LICENSE-KEY");`;
 
   const cppCloudVar = 
 `// Retrieve decrypted cloud variable

@@ -1,13 +1,13 @@
-# ⚡ BLACKOUT AUTH — Next-Gen Licensing & Identity Engine
+# ⚡ ARENA AUTH — Next-Gen Licensing & Identity Engine
 
-**BLACKOUT AUTH** is a secure, high-performance licensing and authentication system inspired by KeyAuth, built from scratch with an ultra-sleek, stealth-dark cyber dashboard and seamless integration libraries for **C#** and **C++** applications.
+**ARENA AUTH** is a secure, high-performance licensing and authentication system inspired by KeyAuth, built from scratch with an ultra-sleek, stealth-dark cyber dashboard and seamless integration libraries for **C#** and **C++** applications.
 
 ---
 
 ## 🌟 Key Features
 
 - 🛡️ **Zero-Dependency C++ Client SDK**: Header-only (`BlackoutAuth.hpp`) using native Windows APIs (`WinHTTP` and `BCrypt`). No `libcurl`, `OpenSSL`, or `vcpkg` required!
-- ⚡ **Lightweight C# Client SDK**: Drop-in .NET class library (`BlackoutApp`) with native hardware ID hashing and anti-debugging safeguards.
+- ⚡ **Lightweight C# Client SDK**: Drop-in .NET class library (`ArenaApp`) with native hardware ID hashing and anti-debugging safeguards.
 - 🎨 **Stealth Dark Admin Dashboard**: Obsidian-dark aesthetic with neon violet/cyan accents, live authentication traffic charts, real-time security alerts, and glassmorphic panels.
 - 🔑 **Flexible License Management**:
   - Bulk key generation (custom prefix, durations: 1d, 7d, 30d, 90d, 365d, or Lifetime, rank levels, notes).
@@ -41,10 +41,10 @@ The server will automatically start on:
 |---|---|
 | **Portal URL** | [http://localhost:5000](http://localhost:5000) |
 | **Username** | `admin` |
-| **Password** | `blackout1337` |
-| **Sample App** | `BlackoutApp` |
+| **Password** | `arena1337` |
+| **Sample App** | `ArenaApp` |
 | **Owner ID** | `OWNER-001` |
-| **App Secret** | `blackout_secret_9999a8b7c6d5e4f321` |
+| **App Secret** | `arena_secret_9999a8b7c6d5e4f321` |
 
 *(You can change the admin password anytime in the **Settings** tab of the dashboard).*
 
@@ -58,10 +58,10 @@ Add a reference to `BlackoutAuth.SDK.CSharp.dll` or include the project:
 using BlackoutAuth.SDK.CSharp;
 
 // 1. Initialize client
-var auth = new BlackoutApp(
-    name: "BlackoutApp",
+var auth = new ArenaApp(
+    name: "ArenaApp",
     ownerId: "OWNER-001",
-    secret: "blackout_secret_9999a8b7c6d5e4f321",
+    secret: "arena_secret_9999a8b7c6d5e4f321",
     version: "1.0",
     apiUrl: "http://localhost:5000" // Replace with your domain in production
 );
@@ -74,7 +74,7 @@ if (!auth.Init())
 }
 
 // 3. Option A: License Key Only (Instant KeyAuth style)
-if (auth.LicenseOnly("BLACKOUT-DEMO-30DAYS-1337"))
+if (auth.LicenseOnly("ARENA-DEMO-30DAYS-1337"))
 {
     Console.WriteLine($"Welcome! Subscription expires: {auth.User.Expiry}");
 }
@@ -104,9 +104,9 @@ int main()
 {
     // 1. Initialize client
     Blackout::Auth auth(
-        "BlackoutApp",
+        "ArenaApp",
         "OWNER-001",
-        "blackout_secret_9999a8b7c6d5e4f321",
+        "arena_secret_9999a8b7c6d5e4f321",
         "1.0",
         "http://localhost:5000"
     );
@@ -119,7 +119,7 @@ int main()
     }
 
     // 3. Authenticate with license key
-    if (auth.LicenseOnly("BLACKOUT-DEMO-30DAYS-1337"))
+    if (auth.LicenseOnly("ARENA-DEMO-30DAYS-1337"))
     {
         std::cout << "Authenticated! Expiry: " << auth.User.Expiry << std::endl;
         std::cout << "Rank Level: " << auth.User.Level << std::endl;
@@ -145,7 +145,7 @@ To compile the C++ demo with MSVC:
 
 ## 🌐 Production VPS Deployment
 
-To host Blackout Auth publicly on any Windows or Linux VPS:
+To host Arena Auth publicly on any Windows or Linux VPS:
 
 1. **Publish Single-File Executable**:
    ```bash
@@ -161,7 +161,7 @@ To host Blackout Auth publicly on any Windows or Linux VPS:
 ## 📁 Repository Directory Structure
 
 ```
-BLACKOUT AUTH/
+ARENA AUTH/
 ├── BlackoutAuth.Server/          # ASP.NET Core Server + Web Dashboard
 │   ├── Controllers/             # AuthController (SDK API) & AdminController (Dashboard)
 │   ├── Data/                    # SQLite EF Core DbContext & Models
@@ -173,7 +173,7 @@ BLACKOUT AUTH/
 │   └── Program.cs
 │
 ├── BlackoutAuth.SDK.CSharp/      # C# Client Class Library
-│   ├── BlackoutApp.cs           # Main SDK Class
+│   ├── ArenaApp.cs           # Main SDK Class
 │   ├── Security/                # Native HWID Hashing & Anti-Debugging
 │   └── Models/                  # Response Models
 │

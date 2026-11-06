@@ -96,10 +96,10 @@ namespace BlackoutAuth.Server.Data
             {
                 var dexterApp = new Application
                 {
-                    Name = "BlackoutApp",
+                    Name = "ArenaApp",
                     OwnerId = "OWNER-DEXTER",
                     AdminUsername = "DEXTER",
-                    Secret = "blackout_secret_9999a8b7c6d5e4f321_Dexter", // Unique secret per admin
+                    Secret = "arena_secret_9999a8b7c6d5e4f321_Dexter", // Unique secret per admin
                     Version = "1.0",
                     IsEnabled = true,
                     HwidLockEnabled = true,
@@ -111,7 +111,7 @@ namespace BlackoutAuth.Server.Data
                 // Dexters demo license key
                 context.LicenseKeys.Add(new LicenseKey
                 {
-                    Key = "BLACKOUT-DEXTER-30DAYS-1337",
+                    Key = "ARENA-DEXTER-30DAYS-1337",
                     AppId = dexterApp.Id,
                     DurationDays = 30,
                     Level = 1,
@@ -154,10 +154,10 @@ namespace BlackoutAuth.Server.Data
             {
                 var sinzoApp = new Application
                 {
-                    Name = "BlackoutApp",
+                    Name = "ArenaApp",
                     OwnerId = "OWNER-SINZO",
                     AdminUsername = "SINZO",
-                    Secret = "blackout_secret_9999a8b7c6d5e4f321_Sinzo", // Unique secret per admin
+                    Secret = "arena_secret_9999a8b7c6d5e4f321_Sinzo", // Unique secret per admin
                     Version = "1.0",
                     IsEnabled = true,
                     HwidLockEnabled = true,
@@ -169,7 +169,7 @@ namespace BlackoutAuth.Server.Data
                 // Sinzo's demo license key
                 context.LicenseKeys.Add(new LicenseKey
                 {
-                    Key = "BLACKOUT-SINZO-30DAYS-1337",
+                    Key = "ARENA-SINZO-30DAYS-1337",
                     AppId = sinzoApp.Id,
                     DurationDays = 30,
                     Level = 1,
@@ -212,10 +212,10 @@ namespace BlackoutAuth.Server.Data
             {
                 var marchalApp = new Application
                 {
-                    Name = "BlackoutApp",
+                    Name = "ArenaApp",
                     OwnerId = "OWNER-MARCHAL",
                     AdminUsername = "MARCHAL",
-                    Secret = "blackout_secret_9999a8b7c6d5e4f321_Marchal", // Unique secret per admin
+                    Secret = "arena_secret_9999a8b7c6d5e4f321_Marchal", // Unique secret per admin
                     Version = "1.0",
                     IsEnabled = true,
                     HwidLockEnabled = true,
@@ -227,7 +227,7 @@ namespace BlackoutAuth.Server.Data
                 // Marchal's demo license key
                 context.LicenseKeys.Add(new LicenseKey
                 {
-                    Key = "BLACKOUT-MARCHAL-30DAYS-1337",
+                    Key = "ARENA-MARCHAL-30DAYS-1337",
                     AppId = marchalApp.Id,
                     DurationDays = 30,
                     Level = 1,
