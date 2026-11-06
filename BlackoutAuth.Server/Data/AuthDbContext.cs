@@ -109,7 +109,7 @@ namespace BlackoutAuth.Server.Data
                 string hash = HashPassword("121", salt);
                 context.Admins.Add(new AdminUser
                 {
-                    Username = "DEXTER",
+                    Username = "KENZO",
                     PasswordHash = hash,
                     Salt = salt,
                     CreatedAt = DateTime.UtcNow
