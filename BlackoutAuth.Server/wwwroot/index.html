@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2.5">
 </head>
 <body class="bg-[#07080B] text-slate-200 font-sans antialiased overflow-x-hidden selection:bg-purple-600 selection:text-white">
 
@@ -194,73 +194,48 @@
       <main class="flex-1 overflow-y-auto p-8 relative">
         
         <!-- ================= TAB: DASHBOARD ================= -->
-        <div id="tab-dashboard" class="tab-pane active space-y-8">
-          <!-- STAT CARDS -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Total Users</p>
-                  <h3 id="statTotalUsers" class="text-3xl font-extrabold text-white mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-purple-600/20 text-purple-400 border border-purple-500/30">
-                  <i class="fa-solid fa-users text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                <i class="fa-solid fa-check text-emerald-400"></i> Registered accounts
-              </p>
-            </div>
-
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Available Licenses</p>
-                  <h3 id="statUnusedKeys" class="text-3xl font-extrabold text-white mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-cyan-600/20 text-cyan-400 border border-cyan-500/30">
-                  <i class="fa-solid fa-key text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                <span id="statTotalKeys">0</span> total generated
-              </p>
-            </div>
-
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Logins Today</p>
-                  <h3 id="statLoginsToday" class="text-3xl font-extrabold text-emerald-400 mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-emerald-600/20 text-emerald-400 border border-emerald-500/30">
-                  <i class="fa-solid fa-arrow-right-to-bracket text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                <i class="fa-solid fa-circle text-[8px] text-emerald-400"></i> Successful sessions
-              </p>
-            </div>
-
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Security Alerts</p>
-                  <h3 id="statSecurityAlerts" class="text-3xl font-extrabold text-rose-400 mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-rose-600/20 text-rose-400 border border-rose-500/30">
-                  <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                HWID mismatches & attacks
-              </p>
+        <div id="tab-dashboard" class="tab-pane active space-y-6">
+          
+          <!-- Breadcrumb & Subscription Banner (Image 1 Style) -->
+          <div class="flex flex-wrap items-center justify-between text-xs font-mono text-slate-400 gap-2 pb-1 border-b border-slate-800/60">
+            <div class="flex items-center space-x-2">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-house text-slate-400 text-[11px]"></i> Dashboard</span>
+              <span class="text-slate-600">&raquo;</span>
+              <span>Overview</span>
+              <span class="text-slate-600">&raquo;</span>
+              <span class="text-rose-400 font-medium">You don't have a subscription! <a href="javascript:void(0)" onclick="showToast('Arena Pro Lifetime Active', 'info')" class="text-blue-400 hover:underline">Upgrade Now.</a></span>
             </div>
           </div>
 
-          <!-- CHART & ACTIVITY -->
+          <!-- Page Heading -->
+          <div>
+            <h2 class="text-2xl font-bold text-white font-['Outfit']">Dashboard Overview</h2>
+            <p class="text-xs text-slate-400 mt-1">Real-time telemetry and licensing analytics. Applications are the backbone of all the data. <a href="javascript:void(0)" onclick="switchTab('apps')" class="text-blue-400 hover:underline">Manage Applications.</a></p>
+          </div>
+
+          <!-- Top Stats Row (4 Metric Cards matching KeyAuth Image 1) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statTotalUsers">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Total Users</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statUnusedKeys">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Available Licenses</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statLoginsToday">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Logins Today</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statSecurityAlerts">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Security Alerts</div>
+            </div>
+          </div>
+
+          <!-- CHART & ACTIVITY (KeyAuth Sleek Panels) -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 glass-panel p-6">
+            <div class="lg:col-span-2 p-6 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg">
               <div class="flex items-center justify-between mb-6">
                 <div>
                   <h3 class="font-bold text-white text-base">Authentication Activity (7 Days)</h3>
@@ -281,7 +256,7 @@
             </div>
 
             <!-- QUICK ACTIONS / APP STATS -->
-            <div class="glass-panel p-6 flex flex-col justify-between">
+            <div class="p-6 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg flex flex-col justify-between">
               <div>
                 <h3 class="font-bold text-white text-base mb-1">Quick Actions</h3>
                 <p class="text-xs text-slate-400 font-mono mb-4">Fast generator & security triggers</p>
@@ -292,20 +267,20 @@
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                   </button>
 
-                  <button onclick="switchTab('apps'); openAppModal();" class="w-full py-3 px-4 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-300 font-mono text-xs flex items-center justify-between transition-all">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-folder-plus text-cyan-400"></i> Create New Application</span>
+                  <button onclick="switchTab('apps'); openAppModal();" class="w-full py-3 px-4 rounded-xl bg-[#3b5bfd]/20 hover:bg-[#3b5bfd]/30 border border-[#3b5bfd]/30 text-blue-300 font-mono text-xs flex items-center justify-between transition-all">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-folder-plus text-blue-400"></i> Create New Application</span>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                   </button>
 
-                  <button onclick="switchTab('vars')" class="w-full py-3 px-4 rounded-xl bg-[#151926] hover:bg-[#1c2133] border border-slate-800 text-slate-300 font-mono text-xs flex items-center justify-between transition-all">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-cloud text-slate-400"></i> Manage Cloud Variables</span>
+                  <button onclick="switchTab('apps');" class="w-full py-3 px-4 rounded-xl bg-[#13151f] hover:bg-[#1a1d2b] border border-[#202332] text-slate-300 font-mono text-xs flex items-center justify-between transition-all">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-cubes text-purple-400"></i> Manage Applications</span>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                   </button>
                 </div>
               </div>
 
               <!-- SDK Integration Info -->
-              <div class="mt-6 p-4 rounded-xl bg-[#090b10] border border-slate-800/80">
+              <div class="mt-6 p-4 rounded-xl bg-[#13151f] border border-[#202332]">
                 <p class="text-[11px] font-mono text-purple-400 font-semibold uppercase mb-1">C# & C++ Ready</p>
                 <p class="text-xs text-slate-400 leading-relaxed">
                   SDK headers and pre-built binaries are ready for 1-minute drop-in integration into your loader or tool.
@@ -1285,6 +1260,6 @@
   <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
   <!-- Application Logic -->
-  <script src="js/dashboard.js"></script>
+  <script src="js/dashboard.js?v=2.5"></script>
 </body>
 </html>
