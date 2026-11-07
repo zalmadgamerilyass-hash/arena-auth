@@ -854,16 +854,6 @@ namespace BlackoutAuth.Server.Controllers
                 }
             }
 
-            // Embedded fallback guarantees download never 404s
-            if (fileType.ToLowerInvariant() is "cpp" or "hpp")
-            {
-                return File(Encoding.UTF8.GetBytes(EmbeddedSdkFiles.ArenaAuthHpp), "application/octet-stream", "ArenaAuth.hpp");
-            }
-            if (fileType.ToLowerInvariant() is "csharp" or "cs")
-            {
-                return File(Encoding.UTF8.GetBytes(EmbeddedSdkFiles.ArenaAppCs), "application/octet-stream", "ArenaApp.cs");
-            }
-
             return NotFound(new { success = false, message = "SDK file not found on server." });
         }
     }
