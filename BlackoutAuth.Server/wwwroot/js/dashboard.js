@@ -135,6 +135,7 @@ function switchTab(tabId) {
   if (tabId === 'files') loadFiles();
   if (tabId === 'logs') loadLogs();
   if (tabId === 'sdk') updateSdkCodeView();
+  if (tabId === 'settings') loadSettingsAppVersion();
 }
 
 function refreshData() {
@@ -1399,4 +1400,103 @@ function showToast(message, type = 'info') {
     toast.classList.add('opacity-0', 'translate-y-2');
     setTimeout(() => toast.remove(), 300);
   }, 3500);
+}
+
+// ==========================================
+// APPLICATION VERSION & SETTINGS HANDLERS
+// ==========================================
+function loadSettingsAppVersion() {
+  const sel = document.getElementById('settingsAppSelect');
+  if (!sel) return;
+
+  if (appsCache.length === 0) {
+    sel.innerHTML = '<option value="">No applications found</option>';
+    return;
+  }
+
+  const activeId = currentAppId || appsCache[0].id;
+  sel.innerHTML = appsCache.map(a => `<option value="${a.id}" ${a.id === activeId ? 'selected' : ''}>${a.name} (v${a.version || '1.0'})</option>`).join('');
+
+  onSettingsAppChanged(activeId);
+}
+
+function onSettingsAppChanged(appId) {
+  const app = appsCache.find(a => a.id === appId) || appsCache[0];
+  if (!app) return;
+
+  const verInput = document.getElementById('settingsAppVersion');
+  const nameInput = document.getElementById('settingsAppName');
+  const dlInput = document.getElementById('settingsAppDownloadUrl');
+  const enabledChk = document.getElementById('settingsAppEnabled');
+  const hwidChk = document.getElementById('settingsAppHwidLock');
+  const badge = document.getElementById('settingsCurrentVersionBadge');
+
+  if (verInput) verInput.value = app.version || '1.0';
+  if (nameInput) nameInput.value = app.name || '';
+  if (dlInput) dlInput.value = app.downloadUrl || '';
+  if (enabledChk) enabledChk.checked = app.isEnabled !== false;
+  if (hwidChk) hwidChk.checked = app.hwidLockEnabled !== false;
+  if (badge) badge.textContent = `v${app.version || '1.0'}`;
+}
+
+async function handleSaveAppSettings(e) {
+  e.preventDefault();
+  const sel = document.getElementById('settingsAppSelect');
+  const appId = sel ? sel.value : currentAppId;
+  const app = appsCache.find(a => a.id === appId) || appsCache[0];
+  if (!app) {
+    showToast('Please select a valid application.', 'warning');
+    return;
+  }
+
+  const newVer = document.getElementById('settingsAppVersion').value.trim();
+  const newName = document.getElementById('settingsAppName').value.trim();
+  const newDl = document.getElementById('settingsAppDownloadUrl').value.trim();
+  const isEnabled = document.getElementById('settingsAppEnabled').checked;
+  const hwidLock = document.getElementById('settingsAppHwidLock').checked;
+
+  if (!newVer) {
+    showToast('Version cannot be empty.', 'warning');
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`${API_BASE}/apps/${app.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newName || app.name,
+        version: newVer,
+        isEnabled: isEnabled,
+        hwidLockEnabled: hwidLock,
+        downloadUrl: newDl || null,
+        discordWebhookUrl: app.discordWebhookUrl
+      })
+    });
+
+    if (res.success) {
+      showToast(`Application '${newName || app.name}' updated to version ${newVer}!`, 'success');
+      
+      const indicator = document.getElementById('settingsSaveSuccessIndicator');
+      if (indicator) {
+        indicator.classList.remove('hidden');
+        setTimeout(() => indicator.classList.add('hidden'), 3000);
+      }
+
+      await loadApps();
+      loadSettingsAppVersion();
+
+      // Update breadcrumb and credentials if active
+      if (document.getElementById('currentAppBreadcrumb')) {
+        document.getElementById('currentAppBreadcrumb').textContent = newName || app.name;
+      }
+      if (document.getElementById('credAppVersion')) {
+        document.getElementById('credAppVersion').textContent = newVer;
+      }
+    } else {
+      showToast(res.message || 'Failed to update settings.', 'error');
+    }
+  } catch (err) {
+    showToast('Failed to save settings: ' + err.message, 'error');
+  }
 }

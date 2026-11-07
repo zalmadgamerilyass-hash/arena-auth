@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2.6">
+  <link rel="stylesheet" href="css/style.css?v=2.7">
 </head>
 <body class="bg-[#07080B] text-slate-200 font-sans antialiased overflow-x-hidden selection:bg-purple-600 selection:text-white">
 
@@ -872,11 +872,127 @@
 
         <!-- ================= TAB: SETTINGS ================= -->
         <div id="tab-settings" class="tab-pane hidden space-y-8 max-w-3xl">
-          <div class="glass-panel p-8">
-            <h3 class="text-lg font-bold text-white mb-1">Change Admin Password</h3>
-            <p class="text-xs text-slate-400 font-mono mb-6">Update the master administrative password</p>
 
-            <form onsubmit="handlePasswordChange(event)" class="space-y-4">
+          <!-- 1. Application Version & Settings Card -->
+          <div class="p-8 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#1b1e2a]">
+              <div>
+                <h3 class="text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
+                  <i class="fa-solid fa-code-branch text-purple-400"></i>
+                  <span>Application Version & Settings</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Control client app version, auto-update URLs, and security locks</p>
+              </div>
+              <span id="settingsCurrentVersionBadge" class="self-start sm:self-auto px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-purple-950/60 text-purple-300 border border-purple-800/60 shadow-sm">
+                v1.0
+              </span>
+            </div>
+
+            <form onsubmit="handleSaveAppSettings(event)" class="space-y-5">
+              <!-- Select Target Application -->
+              <div>
+                <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Target Application</label>
+                <div class="relative">
+                  <i class="fa-solid fa-cube absolute left-3.5 top-3.5 text-purple-400 text-xs"></i>
+                  <select id="settingsAppSelect" onchange="onSettingsAppChanged(this.value)" class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                    <!-- Dynamic Options -->
+                  </select>
+                </div>
+              </div>
+
+              <!-- Two Column: Version & Name -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- App Version Input -->
+                <div>
+                  <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5 flex items-center justify-between">
+                    <span>Application Version</span>
+                    <span class="text-rose-400 font-bold text-[10px]">REQUIRED</span>
+                  </label>
+                  <div class="relative">
+                    <i class="fa-solid fa-tag absolute left-3.5 top-3.5 text-slate-500 text-xs"></i>
+                    <input 
+                      type="text" 
+                      id="settingsAppVersion" 
+                      required 
+                      placeholder="e.g. 1.0 or 2.1" 
+                      class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500 font-bold"
+                    >
+                  </div>
+                  <span class="text-[10px] text-slate-500 font-mono mt-1 block">Clients check this during auth.Init()</span>
+                </div>
+
+                <!-- App Name Input -->
+                <div>
+                  <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Application Name</label>
+                  <div class="relative">
+                    <i class="fa-solid fa-pen absolute left-3.5 top-3.5 text-slate-500 text-xs"></i>
+                    <input 
+                      type="text" 
+                      id="settingsAppName" 
+                      required 
+                      placeholder="ArenaApp" 
+                      class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                    >
+                  </div>
+                  <span class="text-[10px] text-slate-500 font-mono mt-1 block">Display identifier for your app</span>
+                </div>
+              </div>
+
+              <!-- Download URL for Auto-updater -->
+              <div>
+                <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Auto-Update Download URL (Optional)</label>
+                <div class="relative">
+                  <i class="fa-solid fa-link absolute left-3.5 top-3.5 text-slate-500 text-xs"></i>
+                  <input 
+                    type="url" 
+                    id="settingsAppDownloadUrl" 
+                    placeholder="https://yourdomain.com/downloads/LatestUpdate.exe" 
+                    class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                  >
+                </div>
+                <span class="text-[10px] text-slate-500 font-mono mt-1 block">Sent to outdated clients when update is required</span>
+              </div>
+
+              <!-- Feature Toggles -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <label class="flex items-center space-x-3 p-3.5 rounded-xl bg-[#13151f] border border-[#202332] cursor-pointer hover:border-slate-700 transition-colors">
+                  <input type="checkbox" id="settingsAppEnabled" class="w-4 h-4 rounded text-purple-600 bg-slate-900 border-slate-700 focus:ring-0">
+                  <div>
+                    <span class="text-xs font-bold text-white block">Application Active</span>
+                    <span class="text-[10px] text-slate-400 block">Allow logins and licensing</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center space-x-3 p-3.5 rounded-xl bg-[#13151f] border border-[#202332] cursor-pointer hover:border-slate-700 transition-colors">
+                  <input type="checkbox" id="settingsAppHwidLock" class="w-4 h-4 rounded text-purple-600 bg-slate-900 border-slate-700 focus:ring-0">
+                  <div>
+                    <span class="text-xs font-bold text-white block">HWID Lock Enforced</span>
+                    <span class="text-[10px] text-slate-400 block">Lock keys to 1 PC fingerprint</span>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-2 flex items-center gap-3">
+                <button type="submit" class="py-2.5 px-6 rounded-xl bg-[#3b5bfd] hover:bg-[#2d4df5] text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
+                  <i class="fa-solid fa-floppy-disk text-xs"></i>
+                  <span>Save Version & Settings</span>
+                </button>
+                <span id="settingsSaveSuccessIndicator" class="hidden text-xs text-emerald-400 font-mono flex items-center gap-1.5">
+                  <i class="fa-solid fa-check"></i> Saved successfully
+                </span>
+              </div>
+            </form>
+          </div>
+
+          <!-- 2. Master Admin Password -->
+          <div class="p-8 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white font-['Outfit'] mb-1">Change Admin Password</h3>
+              <p class="text-xs text-slate-400 font-mono">Update the master administrative password</p>
+            </div>
+
+            <form onsubmit="handlePasswordChange(event)" class="space-y-4 pt-1">
               <div>
                 <label class="block text-xs font-mono uppercase text-slate-400 mb-1">Current Password</label>
                 <input type="password" id="currentPass" required class="form-input">
@@ -891,11 +1007,14 @@
             </form>
           </div>
 
-          <div class="glass-panel p-8">
-            <h3 class="text-lg font-bold text-white mb-1">Discord Webhook Test</h3>
-            <p class="text-xs text-slate-400 font-mono mb-6">Send a test notification embed to verify connection</p>
+          <!-- 3. Discord Webhook Test -->
+          <div class="p-8 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white font-['Outfit'] mb-1">Discord Webhook Test</h3>
+              <p class="text-xs text-slate-400 font-mono">Send a test notification embed to verify connection</p>
+            </div>
 
-            <div class="space-y-4">
+            <div class="space-y-4 pt-1">
               <div>
                 <label class="block text-xs font-mono uppercase text-slate-400 mb-1">Webhook URL</label>
                 <input type="url" id="testWebhookUrl" placeholder="https://discord.com/api/webhooks/..." class="form-input">
@@ -906,6 +1025,7 @@
               </button>
             </div>
           </div>
+
         </div>
 
       </main>
@@ -1261,6 +1381,6 @@
   <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
   <!-- Application Logic -->
-  <script src="js/dashboard.js?v=2.6"></script>
+  <script src="js/dashboard.js?v=2.7"></script>
 </body>
 </html>
