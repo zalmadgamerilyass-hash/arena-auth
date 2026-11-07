@@ -274,43 +274,282 @@ function renderApps() {
   const container = document.getElementById('appsList');
   if (!container) return;
 
-  if (appsCache.length === 0) {
-    container.innerHTML = `<div class="col-span-3 text-center py-12 text-slate-500 font-mono text-xs">No applications configured yet. Click "Create Application" to begin.</div>`;
+  // 1. Update Top Stats
+  const totalApps = appsCache.length;
+  const activeApps = appsCache.filter(a => a.isEnabled).length;
+  const pausedApps = appsCache.filter(a => !a.isEnabled).length;
+
+  const statTotal = document.getElementById('appStatTotal');
+  const statActive = document.getElementById('appStatActive');
+  const statPaused = document.getElementById('appStatPaused');
+  const statSessions = document.getElementById('appStatSessions');
+  if (statTotal) statTotal.textContent = totalApps;
+  if (statActive) statActive.textContent = activeApps;
+  if (statPaused) statPaused.textContent = pausedApps;
+  if (statSessions) statSessions.textContent = '0';
+
+  // 2. Resolve Active App and populate Left Column Credentials
+  if (!currentAppId && appsCache.length > 0) {
+    currentAppId = appsCache[0].id;
+  }
+  const selectedApp = appsCache.find(a => a.id === currentAppId) || appsCache[0] || null;
+
+  if (selectedApp) {
+    const credName = document.getElementById('credAppName');
+    const credOwner = document.getElementById('credOwnerId');
+    const credSec = document.getElementById('credAppSecret');
+    const credVer = document.getElementById('credAppVersion');
+    const breadcrumb = document.getElementById('currentAppBreadcrumb');
+
+    if (credName) credName.textContent = selectedApp.name;
+    if (credOwner) credOwner.textContent = selectedApp.ownerId || 'OWNER-001';
+    if (credSec) credSec.textContent = selectedApp.secret || '••••••••••••••••';
+    if (credSec) credSec.setAttribute('data-full-secret', selectedApp.secret);
+    if (credVer) credVer.textContent = selectedApp.version || '1.0';
+    if (breadcrumb) breadcrumb.textContent = selectedApp.name;
+    updateSnippetCode(selectedApp);
+  }
+
+  // 3. Populate appsFilterSelect if not focused
+  const filterSel = document.getElementById('appsFilterSelect');
+  if (filterSel) {
+    const currVal = filterSel.value;
+    filterSel.innerHTML = '<option value="">All Applications</option>' + 
+      appsCache.map(a => `<option value="${a.id}" ${a.id === currentAppId ? 'selected' : ''}>${a.name}</option>`).join('');
+  }
+
+  // 4. Filter apps by search query
+  const searchInput = document.getElementById('appSearchInput');
+  const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  const filtered = appsCache.filter(a => {
+    if (!q) return true;
+    return a.name.toLowerCase().includes(q) || (a.ownerId && a.ownerId.toLowerCase().includes(q));
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="p-8 text-center text-slate-500 font-mono text-xs rounded-xl bg-[#0e1017] border border-[#1b1e2a]">No applications found. Click "Create Application" to add one.</div>';
     return;
   }
 
-  container.innerHTML = appsCache.map(app => `
-    <div class="glass-panel p-6 relative group border border-slate-800 hover:border-purple-500/40 transition-all">
-      <div class="flex items-start justify-between">
-        <div>
-          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 px-2 py-0.5 rounded bg-purple-950/40 border border-purple-800/40">App ID: ${app.id.substring(0, 8)}...</span>
-          <h4 class="text-xl font-bold text-white mt-2">${app.name}</h4>
-          <p class="text-xs text-slate-400 font-mono">Owner: <span class="text-slate-300">${app.ownerId}</span></p>
+  // 5. Render exact KeyAuth Cards (Image 1)
+  container.innerHTML = filtered.map(app => {
+    const isSelected = app.id === currentAppId;
+    return `
+      <div class="p-6 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg relative space-y-4 hover:border-slate-700 transition-all">
+        <!-- App Header -->
+        <div class="flex items-center justify-between">
+          <h4 class="text-base font-bold text-white">${app.name}</h4>
+          <span class="${app.isEnabled ? 'bg-[#052e16] text-[#4ade80] border border-[#166534]' : 'bg-[#3b1219] text-[#f87171] border border-[#991b1b]'} px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">
+            ${app.isEnabled ? 'ACTIVE' : 'PAUSED'}
+          </span>
         </div>
-        <div class="flex flex-col items-end gap-1.5">
-          <span class="${app.isEnabled ? 'badge-active' : 'badge-banned'} font-mono">${app.isEnabled ? 'Active' : 'Disabled'}</span>
-          <span class="text-[10px] font-mono text-slate-500">v${app.version}</span>
-        </div>
-      </div>
 
-      <!-- App Secret Box -->
-      <div class="mt-4 p-3 bg-[#0a0c13] rounded-xl border border-slate-800/80">
-        <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
-          <span>Application Secret</span>
-          <button onclick="copyToClipboard('${app.secret}')" class="text-purple-400 hover:text-purple-300"><i class="fa-regular fa-copy"></i> Copy</button>
+        <!-- 3 Column Metrics -->
+        <div class="grid grid-cols-3 gap-2 py-2 text-center border-y border-[#1a1d28]/70">
+          <div>
+            <div class="text-[11px] text-slate-400 font-medium">App Version</div>
+            <div class="text-sm font-bold text-white mt-0.5">${app.version || '1.0'}</div>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400 font-medium">Users</div>
+            <div class="text-sm font-bold text-white mt-0.5">0</div>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400 font-medium">Application Standing</div>
+            <div class="text-sm font-bold text-emerald-400 mt-0.5">Good</div>
+          </div>
         </div>
-        <div class="text-xs font-mono text-slate-300 truncate selection:bg-purple-900 select-all">${app.secret}</div>
-      </div>
 
-      <div class="mt-4 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono">
-        <span class="text-slate-400">HWID Lock: <strong class="${app.hwidLockEnabled ? 'text-emerald-400' : 'text-slate-500'}">${app.hwidLockEnabled ? 'ON' : 'OFF'}</strong></span>
-        <div class="flex space-x-2">
-          <button onclick="regenSecret('${app.id}')" title="Regenerate Secret" class="p-1.5 text-slate-400 hover:text-purple-400 transition-colors"><i class="fa-solid fa-rotate text-xs"></i></button>
-          <button onclick="deleteApp('${app.id}')" title="Delete App" class="p-1.5 text-slate-400 hover:text-rose-400 transition-colors"><i class="fa-solid fa-trash-can text-xs"></i></button>
+        <!-- Horizontal Action Buttons (Image 1) -->
+        <div class="flex flex-wrap items-center gap-2 pt-1">
+          <!-- Selected button -->
+          <button onclick="selectActiveApp('${app.id}')" class="${isSelected ? 'bg-[#15803d]' : 'bg-[#1e293b] hover:bg-[#334155]'} text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-file-lines text-xs"></i>
+            <span>${isSelected ? 'Selected' : 'Select'}</span>
+          </button>
+
+          <!-- Rename button -->
+          <button onclick="renameAppPrompt('${app.id}', '${app.name}')" class="bg-[#9333ea] hover:bg-[#7e22ce] text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-pen text-xs"></i>
+            <span>Rename</span>
+          </button>
+
+          <!-- Edit Description button -->
+          <button onclick="editAppPrompt('${app.id}')" class="bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-pen-to-square text-xs"></i>
+            <span>Edit Description</span>
+          </button>
+
+          <!-- Pause button -->
+          <button onclick="toggleAppPause('${app.id}')" class="bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-pause text-xs"></i>
+            <span>${app.isEnabled ? 'Pause' : 'Resume'}</span>
+          </button>
+
+          <!-- Delete button -->
+          <button onclick="deleteAppConfirm('${app.id}')" class="bg-[#dc2626] hover:bg-[#b91c1c] text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+            <span>Delete</span>
+          </button>
         </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+}
+
+function selectActiveApp(appId) {
+  currentAppId = appId;
+  const topSel = document.getElementById('appSelector');
+  if (topSel) topSel.value = appId;
+  renderApps();
+  loadStats();
+  const app = appsCache.find(a => a.id === appId);
+  if (app) showToast(`Switched to '${app.name}'`, 'info');
+}
+
+function handleAppSelectChange(appId) {
+  if (appId) {
+    selectActiveApp(appId);
+  } else {
+    currentAppId = '';
+    renderApps();
+  }
+}
+
+function copyElementText(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const fullText = el.getAttribute('data-full-secret') || el.textContent;
+  navigator.clipboard.writeText(fullText).then(() => {
+    showToast('Copied to clipboard!', 'success');
+  }).catch(() => {
+    copyToClipboard(fullText);
+  });
+}
+
+async function refreshCurrentAppSecret() {
+  const app = appsCache.find(a => a.id === currentAppId) || appsCache[0];
+  if (!app) return;
+  try {
+    const res = await apiFetch(`${API_BASE}/apps/${app.id}/regen-secret`, { method: 'POST' });
+    if (res.success) {
+      showToast('Application secret refreshed successfully!', 'success');
+      await loadApps();
+    }
+  } catch (err) {
+    showToast('Failed to refresh secret.', 'error');
+  }
+}
+
+async function toggleAppPause(appId) {
+  const app = appsCache.find(a => a.id === appId);
+  if (!app) return;
+  try {
+    const res = await apiFetch(`${API_BASE}/apps/${app.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: app.name,
+        version: app.version,
+        isEnabled: !app.isEnabled,
+        hwidLockEnabled: app.hwidLockEnabled,
+        downloadUrl: app.downloadUrl,
+        discordWebhookUrl: app.discordWebhookUrl
+      })
+    });
+    if (res.success) {
+      showToast(`Application ${!app.isEnabled ? 'activated' : 'paused'}!`, 'success');
+      await loadApps();
+    }
+  } catch (err) {
+    showToast('Failed to update app status.', 'error');
+  }
+}
+
+async function renameAppPrompt(appId, oldName) {
+  const newName = prompt('Enter new application name:', oldName);
+  if (!newName || newName.trim() === '' || newName === oldName) return;
+  const app = appsCache.find(a => a.id === appId);
+  if (!app) return;
+  try {
+    const res = await apiFetch(`${API_BASE}/apps/${app.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newName.trim(),
+        version: app.version,
+        isEnabled: app.isEnabled,
+        hwidLockEnabled: app.hwidLockEnabled,
+        downloadUrl: app.downloadUrl,
+        discordWebhookUrl: app.discordWebhookUrl
+      })
+    });
+    if (res.success) {
+      showToast(`Application renamed to '${newName}'`, 'success');
+      await loadApps();
+    }
+  } catch (err) {
+    showToast('Failed to rename application.', 'error');
+  }
+}
+
+function editAppPrompt(appId) {
+  const app = appsCache.find(a => a.id === appId);
+  if (!app) return;
+  const newVer = prompt('Update application version:', app.version || '1.0');
+  if (newVer === null) return;
+  apiFetch(`${API_BASE}/apps/${app.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: app.name,
+      version: newVer.trim() || '1.0',
+      isEnabled: app.isEnabled,
+      hwidLockEnabled: app.hwidLockEnabled,
+      downloadUrl: app.downloadUrl,
+      discordWebhookUrl: app.discordWebhookUrl
+    })
+  }).then(res => {
+    if (res.success) {
+      showToast('Application updated.', 'success');
+      loadApps();
+    }
+  }).catch(() => showToast('Update failed.', 'error'));
+}
+
+async function deleteAppConfirm(appId) {
+  const app = appsCache.find(a => a.id === appId);
+  if (!app) return;
+  if (!confirm(`Are you sure you want to permanently delete '${app.name}' and all its users & keys?`)) return;
+  try {
+    const res = await apiFetch(`${API_BASE}/apps/${app.id}`, { method: 'DELETE' });
+    if (res.success) {
+      showToast('Application deleted.', 'success');
+      currentAppId = '';
+      await loadApps();
+    }
+  } catch (e) {
+    showToast('Failed to delete application.', 'error');
+  }
+}
+
+function toggleCodeSnippetPreview() {
+  const chk = document.getElementById('toggleCodeSnippet');
+  const box = document.getElementById('codeSnippetBox');
+  if (!chk || !box) return;
+  if (chk.checked) {
+    box.classList.remove('hidden');
+    const app = appsCache.find(a => a.id === currentAppId) || appsCache[0];
+    updateSnippetCode(app);
+  } else {
+    box.classList.add('hidden');
+  }
+}
+
+function updateSnippetCode(app) {
+  const pre = document.getElementById('codeSnippetPre');
+  if (!pre || !app) return;
+  pre.textContent = `using ArenaAuth.SDK.CSharp;\n\nvar auth = new ArenaApp(\n    name: "${app.name}",\n    ownerId: "${app.ownerId || 'OWNER-001'}",\n    secret: "${app.secret}",\n    version: "${app.version || '1.0'}",\n    apiUrl: "${window.location.origin}"\n);\n\nauth.Init();`;
 }
 
 async function handleAppCreate(e) {

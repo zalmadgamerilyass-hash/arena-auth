@@ -317,20 +317,153 @@
 
         <!-- ================= TAB: APPLICATIONS ================= -->
         <div id="tab-apps" class="tab-pane hidden space-y-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-lg font-bold text-white">Managed Applications</h3>
-              <p class="text-xs text-slate-400 font-mono mt-0.5">Control API keys, versions, and security locks</p>
+          
+          <!-- Breadcrumb & Subscription Banner (Image 1) -->
+          <div class="flex flex-wrap items-center justify-between text-xs font-mono text-slate-400 gap-2 pb-1 border-b border-slate-800/60">
+            <div class="flex items-center space-x-2">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-house text-slate-400 text-[11px]"></i> Manage Apps</span>
+              <span class="text-slate-600">&raquo;</span>
+              <span>Current Application: <strong id="currentAppBreadcrumb" class="text-white font-bold">ArenaApp</strong></span>
+              <span class="text-slate-600">&raquo;</span>
+              <span class="text-rose-400 font-medium">You don't have a subscription! <a href="javascript:void(0)" onclick="showToast('Arena Pro Lifetime Active', 'info')" class="text-blue-400 hover:underline">Upgrade Now.</a></span>
             </div>
-            <button onclick="openAppModal()" class="btn-primary">
-              <i class="fa-solid fa-plus text-xs"></i>
-              <span>Create Application</span>
-            </button>
           </div>
 
-          <div id="appsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Dynamic Apps Loaded Here -->
+          <!-- Page Heading -->
+          <div>
+            <h2 class="text-2xl font-bold text-white font-['Outfit']">Manage Applications</h2>
+            <p class="text-xs text-slate-400 mt-1">Manage your applications. Applications are the backbone of all the data. <a href="javascript:void(0)" onclick="switchTab('sdk')" class="text-blue-400 hover:underline">Learn More.</a></p>
           </div>
+
+          <!-- Top Stats Row (4 Metric Cards matching Image 1) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatTotal">1</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Total Apps</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatActive">1</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Active</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatPaused">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Paused</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatSessions">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Active Sessions</div>
+            </div>
+          </div>
+
+          <!-- Main Two-Column Split (Left: Credentials, Right: My Applications) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT: Application Credentials -->
+            <div class="lg:col-span-5 p-6 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-4">
+              <div>
+                <h3 class="text-base font-bold text-white">Application Credentials</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Simply replace the placeholder code in the example with these</p>
+              </div>
+
+              <!-- Toggle: Display Code Snippet -->
+              <div class="flex items-center space-x-3 pt-1">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="toggleCodeSnippet" onchange="toggleCodeSnippetPreview()" class="sr-only peer">
+                  <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+                <span class="text-xs text-slate-400 font-medium">Display Code Snippet</span>
+              </div>
+
+              <!-- Credential Fields -->
+              <div class="space-y-3 pt-1">
+                <!-- 1. Application Name -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Application Name</span>
+                    <span id="credAppName" class="text-xs font-mono font-bold text-white truncate block mt-0.5">ArenaApp</span>
+                  </div>
+                  <button onclick="copyElementText('credAppName')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+
+                <!-- 2. Account Owner ID -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Account Owner ID</span>
+                    <span id="credOwnerId" class="text-xs font-mono font-bold text-white truncate block mt-0.5">OWNER-001</span>
+                  </div>
+                  <button onclick="copyElementText('credOwnerId')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+
+                <!-- 3. Application Secret -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden pr-2">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Application Secret</span>
+                    <span id="credAppSecret" class="text-xs font-mono text-slate-300 truncate block mt-0.5">••••••••••••••••••••••••••••••••</span>
+                  </div>
+                  <button onclick="copyElementText('credAppSecret')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+
+                <!-- 4. Application Version -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Application Version</span>
+                    <span id="credAppVersion" class="text-xs font-mono font-bold text-white truncate block mt-0.5">1.0</span>
+                  </div>
+                  <button onclick="copyElementText('credAppVersion')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+              </div>
+
+              <!-- Refresh Secret Button -->
+              <button onclick="refreshCurrentAppSecret()" class="py-2.5 px-4 rounded-xl bg-[#d97706] hover:bg-[#b45309] text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow">
+                <i class="fa-solid fa-rotate text-xs"></i>
+                <span>Refresh Application Secret</span>
+              </button>
+
+              <!-- Blue Notice Alert -->
+              <div class="p-4 rounded-xl bg-[#1e293b]/60 border border-blue-500/30 text-xs text-slate-300 flex items-start gap-3">
+                <i class="fa-solid fa-circle-info text-blue-400 text-sm mt-0.5 shrink-0"></i>
+                <div class="leading-relaxed">
+                  <strong class="text-white">Notice!</strong>
+                  <p class="text-[11px] text-slate-300 mt-0.5">Application secrets are only displayed for users using our older API endpoints. If you're using our newer API (1.3), application secrets are not used!</p>
+                </div>
+              </div>
+
+              <!-- Code Snippet Box -->
+              <div id="codeSnippetBox" class="hidden p-3.5 rounded-xl bg-[#0a0c12] border border-slate-800 font-mono text-[11px] text-purple-300 overflow-x-auto">
+                <pre id="codeSnippetPre"></pre>
+              </div>
+            </div>
+
+            <!-- RIGHT: My Applications -->
+            <div class="lg:col-span-7 space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h3 class="text-base font-bold text-white">My Applications</h3>
+                <div class="relative w-full sm:w-64">
+                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                  <input type="text" id="appSearchInput" oninput="renderApps()" placeholder="Search applications..." class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+              </div>
+
+              <!-- Filter Dropdown & Create Button -->
+              <div class="space-y-3">
+                <select id="appsFilterSelect" onchange="handleAppSelectChange(this.value)" class="w-full bg-[#13151f] border border-[#202332] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
+                  <option value="">All Applications</option>
+                </select>
+
+                <button onclick="openAppModal()" class="w-full py-2.5 px-4 rounded-xl bg-[#3b5bfd] hover:bg-[#2d4df5] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
+                  <i class="fa-solid fa-plus text-xs"></i>
+                  <span>Create Application</span>
+                </button>
+              </div>
+
+              <!-- Dynamic Cards Container -->
+              <div id="appsList" class="space-y-4">
+                <!-- Injected via renderApps() -->
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
         <!-- ================= TAB: LICENSES ================= -->

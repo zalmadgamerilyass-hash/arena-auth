@@ -73,23 +73,27 @@ body {
 .nav-item {
   color: #94a3b8;
   position: relative;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  border-radius: 0 0.625rem 0.625rem 0;
 }
 
 .nav-item:hover {
   color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgba(255, 255, 255, 0.04);
 }
 
+/* KeyAuth style active tab with purple indicator bar (Image 2) */
 .nav-item.active {
-  color: #ffffff;
-  background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.03) 100%);
-  border-left: 3px solid var(--accent-purple);
-  border-radius: 0 0.75rem 0.75rem 0;
-  font-weight: 600;
+  color: #ffffff !important;
+  background: #171822 !important;
+  border-left: 3px solid #8b5cf6 !important;
+  border-radius: 0 0.625rem 0.625rem 0 !important;
+  font-weight: 700 !important;
 }
 
 .nav-item.active i {
-  color: var(--accent-purple);
+  color: #a855f7 !important;
 }
 
 /* Buttons */
