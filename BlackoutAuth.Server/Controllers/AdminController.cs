@@ -821,64 +821,50 @@ namespace BlackoutAuth.Server.Controllers
             return Ok(new { success = true, message = "Test notification sent." });
         }
 
+        [HttpGet("/api/download/{fileType}")]
         [HttpGet("download-sdk/{fileType}")]
         public IActionResult DownloadSdk(string fileType)
         {
-            // SDK files are public client developer libraries - no auth restriction required for direct download
-            string webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "downloads");
-            string filePath = "";
-            string contentType = "application/octet-stream";
-            string downloadFileName = "";
-
-            switch (fileType.ToLowerInvariant())
+            string fileName = fileType.ToLowerInvariant() switch
             {
-                case "cpp":
-                case "hpp":
-                    filePath = Path.Combine(webRoot, "ArenaAuth.hpp");
-                    if (!System.IO.File.Exists(filePath)) filePath = Path.Combine(webRoot, "BlackoutAuth.hpp");
-                    contentType = "text/plain";
-                    downloadFileName = "ArenaAuth.hpp";
-                    break;
-                case "csharp":
-                case "cs":
-                    filePath = Path.Combine(webRoot, "ArenaApp.cs");
-                    if (!System.IO.File.Exists(filePath)) filePath = Path.Combine(webRoot, "BlackoutApp.cs");
-                    contentType = "text/plain";
-                    downloadFileName = "ArenaApp.cs";
-                    break;
-                case "dll":
-                    filePath = Path.Combine(webRoot, "ArenaAuth.SDK.CSharp.dll");
-                    if (!System.IO.File.Exists(filePath)) filePath = Path.Combine(webRoot, "BlackoutAuth.SDK.CSharp.dll");
-                    contentType = "application/octet-stream";
-                    downloadFileName = "ArenaAuth.SDK.CSharp.dll";
-                    break;
-                default:
-                    return BadRequest("Invalid SDK file requested.");
-            }
+                "cpp" or "hpp" => "ArenaAuth.hpp",
+                "csharp" or "cs" => "ArenaApp.cs",
+                "dll" => "ArenaAuth.SDK.CSharp.dll",
+                _ => ""
+            };
 
-            if (!System.IO.File.Exists(filePath))
+            if (string.IsNullOrEmpty(fileName)) return BadRequest("Invalid SDK type requested.");
+
+            string[] candidatePaths = new[]
             {
-                // Fallback search relative to solution root
-                string altPath = fileType.ToLowerInvariant() switch
-                {
-                    "cpp" or "hpp" => Path.Combine(Directory.GetCurrentDirectory(), "..", "BlackoutAuth.SDK.Cpp", "include", "BlackoutAuth.hpp"),
-                    "csharp" or "cs" => Path.Combine(Directory.GetCurrentDirectory(), "..", "BlackoutAuth.SDK.CSharp", "BlackoutApp.cs"),
-                    "dll" => Path.Combine(Directory.GetCurrentDirectory(), "..", "BlackoutAuth.SDK.CSharp", "bin", "Release", "net9.0", "BlackoutAuth.SDK.CSharp.dll"),
-                    _ => ""
-                };
+                Path.Combine(AppContext.BaseDirectory, "wwwroot", "downloads", fileName),
+                Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "downloads", fileName),
+                Path.Combine(AppContext.BaseDirectory, "wwwroot", "downloads", fileName.Replace("Arena", "Blackout")),
+                Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "downloads", fileName.Replace("Arena", "Blackout")),
+                Path.Combine(AppContext.BaseDirectory, "downloads", fileName),
+                Path.Combine(Directory.GetCurrentDirectory(), "downloads", fileName)
+            };
 
-                if (!string.IsNullOrEmpty(altPath) && System.IO.File.Exists(altPath))
+            foreach (var path in candidatePaths)
+            {
+                if (System.IO.File.Exists(path))
                 {
-                    filePath = altPath;
-                }
-                else
-                {
-                    return NotFound(new { success = false, message = "SDK file not found on server." });
+                    var fileBytes = System.IO.File.ReadAllBytes(path);
+                    return File(fileBytes, "application/octet-stream", fileName);
                 }
             }
 
-            var bytes = System.IO.File.ReadAllBytes(filePath);
-            return File(bytes, contentType, downloadFileName);
+            // Embedded fallback guarantees download never 404s
+            if (fileType.ToLowerInvariant() is "cpp" or "hpp")
+            {
+                return File(Encoding.UTF8.GetBytes(EmbeddedSdkFiles.ArenaAuthHpp), "application/octet-stream", "ArenaAuth.hpp");
+            }
+            if (fileType.ToLowerInvariant() is "csharp" or "cs")
+            {
+                return File(Encoding.UTF8.GetBytes(EmbeddedSdkFiles.ArenaAppCs), "application/octet-stream", "ArenaApp.cs");
+            }
+
+            return NotFound(new { success = false, message = "SDK file not found on server." });
         }
     }
 }

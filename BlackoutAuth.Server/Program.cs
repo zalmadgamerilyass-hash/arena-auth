@@ -53,9 +53,20 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Serve static files from wwwroot (Web Dashboard)
+// Configure static files & MIME types so browsers can download .hpp, .cs, .dll directly
+var contentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+contentTypeProvider.Mappings[".hpp"] = "text/plain";
+contentTypeProvider.Mappings[".h"] = "text/plain";
+contentTypeProvider.Mappings[".cs"] = "text/plain";
+contentTypeProvider.Mappings[".dll"] = "application/octet-stream";
+
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = contentTypeProvider,
+    ServeUnknownFileTypes = true,
+    DefaultContentType = "application/octet-stream"
+});
 
 app.UseRouting();
 app.UseAuthorization();
