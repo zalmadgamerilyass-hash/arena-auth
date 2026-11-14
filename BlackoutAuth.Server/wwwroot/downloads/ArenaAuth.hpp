@@ -365,8 +365,8 @@ namespace Arena
         bool IsInitialized = false;
         bool IsLoggedIn = false;
 
-        Auth(const std::string& name, const std::string& ownerId, const std::string& secret, const std::string& version, const std::string& apiUrl = "http://localhost:5000", bool enableAntiDebug = false)
-            : Name(name), OwnerId(ownerId), Secret(secret), Version(version), ApiUrl(apiUrl), EnableAntiDebug(enableAntiDebug)
+        Auth(const std::string& name, const std::string& ownerId, const std::string& secret, const std::string& version, const std::string& apiUrl = "https://arena-auth-production.up.railway.app", bool enableAntiDebug = false)
+            : Name(name), OwnerId(ownerId), Secret(secret), Version(version), ApiUrl(apiUrl.empty() ? "https://arena-auth-production.up.railway.app" : apiUrl), EnableAntiDebug(enableAntiDebug)
         {
             Hwid = Utils::GenerateHwid();
         }
@@ -375,18 +375,14 @@ namespace Arena
 
         bool Init()
         {
-            // --- PERMANENT IDENTITY CHECK ---
-            // These values are embedded in the SDK and cannot be changed even if source is leaked
-            // This prevents attackers from patching the EXE to use different app credentials
-            if (Name != "ArenaApp") {
+            if (Name.empty()) {
                 m_lastError = "Security violation: Invalid application name.";
                 return false;
             }
-            if (OwnerId != "OWNER-001") {
+            if (OwnerId.empty()) {
                 m_lastError = "Security violation: Invalid owner identity.";
                 return false;
             }
-            // === END PERMANENT IDENTITY CHECK ===
 
             if (EnableAntiDebug && Utils::DetectDebugger())
             {
