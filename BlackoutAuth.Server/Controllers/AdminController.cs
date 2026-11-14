@@ -817,7 +817,7 @@ namespace BlackoutAuth.Server.Controllers
             if (!IsAdminAuthenticated()) return Unauthorized();
 
             string url = body.GetValueOrDefault("url", "");
-            await DiscordService.SendAlertAsync(url, "Webhook Test", "Arena Auth Discord notification is working successfully!", 0x8B5CF6);
+            await DiscordService.SendAlertAsync(url, "Webhook Test", "POWER X Discord notification is working successfully!", 0x8B5CF6);
             return Ok(new { success = true, message = "Test notification sent." });
         }
 
