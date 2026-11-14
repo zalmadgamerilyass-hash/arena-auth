@@ -48,8 +48,8 @@ app.UseCors("AllowAll");
 // GLOBAL DEXTER CREDIT HEADERS
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Append("X-Developer", "DEXTER");
-    context.Response.Headers.Append("X-Powered-By", "Arena Auth - Developed by DEXTER");
+    context.Response.Headers.Append("X-Developer", "KAIRO");
+    context.Response.Headers.Append("X-Powered-By", "Arena Auth - Developed by KAIRO");
     await next();
 });
 
