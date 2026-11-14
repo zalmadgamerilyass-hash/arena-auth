@@ -97,8 +97,8 @@ namespace BlackoutAuth.Server.Controllers
             {
                 app = new Application
                 {
-                    Name = "ArenaApp",
-                    OwnerId = "OWNER-ARENA",
+                    Name = "PowerXApp",
+                    OwnerId = "OWNER-POWERX",
                     AdminUsername = "ADMIN",
                     Version = "1.0",
                     IsEnabled = true,
@@ -117,7 +117,7 @@ namespace BlackoutAuth.Server.Controllers
             {
                 var license = new LicenseKey
                 {
-                    Key = CryptoService.GenerateLicenseKey("ARENA"),
+                    Key = CryptoService.GenerateLicenseKey("POWERX"),
                     AppId = app.Id,
                     DurationDays = durationDays,
                     Level = 1,
