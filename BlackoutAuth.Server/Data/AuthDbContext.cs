@@ -47,13 +47,13 @@ namespace BlackoutAuth.Server.Data
 
             // --- Seed 3 Admin Users ---
             // SINZO (password: 111)
-            if (!context.Admins.Any(a => a.Username == "KENZO"))
+            if (!context.Admins.Any(a => a.Username == "POWER X"))
             {
                 string salt = Guid.NewGuid().ToString("N");
-                string hash = HashPassword("Arena@Kenzo#3Ym76Bq5", salt);
+                string hash = HashPassword("POWER X", salt);
                 context.Admins.Add(new AdminUser
                 {
-                    Username = "KENZO",
+                    Username = "POWER X",
                     PasswordHash = hash,
                     Salt = salt,
                     CreatedAt = DateTime.UtcNow
@@ -61,13 +61,13 @@ namespace BlackoutAuth.Server.Data
             }
 
             // MARCHAL (password: 222)
-            if (!context.Admins.Any(a => a.Username == "VINI"))
+            if (!context.Admins.Any(a => a.Username == "KAIRO"))
             {
                 string salt = Guid.NewGuid().ToString("N");
                 string hash = HashPassword("1949", salt);
                 context.Admins.Add(new AdminUser
                 {
-                    Username = "VINI",
+                    Username = "KAIRO",
                     PasswordHash = hash,
                     Salt = salt,
                     CreatedAt = DateTime.UtcNow
