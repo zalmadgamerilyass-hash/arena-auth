@@ -93,7 +93,8 @@ async function initDashboard() {
   // ANTI-SKID / WATERMARK PROTECTION: Ensure KAIRO credit cannot be removed
   setInterval(() => {
     const cred = document.getElementById('dexter-credit');
-    if (!cred || !cred.innerText.includes('KAIRO ')) {
+    const creditedDeveloper = cred?.querySelector('p:last-of-type')?.textContent.trim();
+    if (creditedDeveloper !== 'KAIRO') {
       document.body.innerHTML = `
         <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#000;color:red;font-family:monospace;flex-direction:column;text-align:center;">
           <h1 style="font-size:3rem;margin-bottom:10px;">🚨 COPYRIGHT VIOLATION 🚨</h1>
