@@ -1161,9 +1161,9 @@ function updateSdkCodeView() {
   const selectedAppId = sdkAppSel.value || (appsCache.length > 0 ? appsCache[0].id : '');
   const app = appsCache.find(a => a.id === selectedAppId) || (appsCache.length > 0 ? appsCache[0] : null);
 
-  const appName = app ? app.name : 'ArenaApp';
+  const appName = app ? app.name : 'PowerXApp';
   const ownerId = app ? app.ownerId : 'OWNER-001';
-  const secret = app ? app.secret : 'arena_secret_9999a8b7c6d5e4f321';
+  const secret = app ? app.secret : 'powerx_secret_9999a8b7c6d5e4f321';
   const version = app ? app.version : '1.0';
   const apiUrl = window.location.origin;
 
@@ -1176,7 +1176,7 @@ class Program
 {
     static void Main()
     {
-        // 1. Initialize Arena Client with your app credentials & enable Anti-Debug
+        // 1. Initialize POWER X Client with your app credentials & enable Anti-Debug
         var auth = new ArenaApp(
             name: "${appName}",
             ownerId: "${ownerId}",
@@ -1249,7 +1249,7 @@ if (auth.Login(user, pass))
 }
 
 // Method B: Or Register a new user account with a license key
-// if (auth.Register(user, pass, "ARENA-LICENSE-KEY")) { ... }`;
+// if (auth.Register(user, pass, "POWERX-LICENSE-KEY")) { ... }`;
 
   const csCloudVar = 
 `// Fetch encrypted cloud variable from server (decrypted locally in memory)
@@ -1272,7 +1272,7 @@ auth.Log("User initialized protected module.", "INFO");`;
 
 int main()
 {
-    // 1. Initialize Arena Client with your app credentials
+    // 1. Initialize POWER X Client with your app credentials
     Arena::Auth auth(
         "${appName}",
         "${ownerId}",
@@ -1330,7 +1330,7 @@ if (auth.Login("user", "password"))
 }
 
 // Method B: Or Register a new user account
-// auth.Register("username", "password", "ARENA-LICENSE-KEY");`;
+// auth.Register("username", "password", "POWERX-LICENSE-KEY");`;
 
   const cppCloudVar = 
 `// Retrieve decrypted cloud variable
