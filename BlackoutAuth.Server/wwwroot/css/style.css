@@ -1,4 +1,4 @@
-/* BLACKOUT AUTH - CUSTOM DARK CYBER THEME */
+/* POWER X - CUSTOM DARK CYBER THEME */
 
 :root {
   --bg-primary: #07080b;
@@ -14,8 +14,32 @@ body {
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-primary);
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.03) 0%, transparent 40%);
+    radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+}
+
+/* Site Background Logo Watermark */
+.site-bg-watermark {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.site-bg-watermark-image {
+  width: min(760px, 85vw);
+  height: min(760px, 85vh);
+  object-fit: contain;
+  mix-blend-mode: screen;
+  opacity: 0.14;
+  filter: drop-shadow(0 0 60px rgba(168, 85, 247, 0.45));
+  user-select: none;
+  pointer-events: none;
 }
 
 /* Custom Scrollbar */

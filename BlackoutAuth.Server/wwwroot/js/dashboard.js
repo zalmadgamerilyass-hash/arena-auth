@@ -1,4 +1,4 @@
-// ARENA AUTH - ADMINISTRATIVE CONTROL SCRIPT
+// POWER X - ADMINISTRATIVE CONTROL SCRIPT
 
 const API_BASE = '/api/admin';
 let adminToken = localStorage.getItem('blackout_admin_token') || null;
@@ -90,15 +90,15 @@ async function initDashboard() {
     setTimeout(openWalkthroughModal, 400);
   }
 
-  // ANTI-SKID / WATERMARK PROTECTION: Ensure DEXTER credit cannot be removed
+  // ANTI-SKID / WATERMARK PROTECTION: Ensure VINI credit cannot be removed
   setInterval(() => {
     const cred = document.getElementById('dexter-credit');
-    if (!cred || !cred.innerText.includes('DEXTER')) {
+    if (!cred || !cred.innerText.includes('VINI')) {
       document.body.innerHTML = `
         <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#000;color:red;font-family:monospace;flex-direction:column;text-align:center;">
           <h1 style="font-size:3rem;margin-bottom:10px;">🚨 COPYRIGHT VIOLATION 🚨</h1>
           <p style="font-size:1.2rem;color:#ccc;">You attempted to remove or modify the developer credits.</p>
-          <p style="font-size:1.5rem;margin-top:20px;">This framework was exclusively Developed & Engineered by <strong>DEXTER</strong>.</p>
+          <p style="font-size:1.5rem;margin-top:20px;">This framework was exclusively Developed & Engineered by <strong>VINI</strong>.</p>
         </div>`;
     }
   }, 2000);
@@ -735,7 +735,7 @@ function exportKeysTxt() {
   const blob = new Blob([text], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `arena_keys_${Date.now()}.txt`;
+  a.download = `powerx_keys_${Date.now()}.txt`;
   a.click();
   showToast(`Exported ${cachedKeys.length} keys to .txt`, 'success');
 }
