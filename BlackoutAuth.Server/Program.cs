@@ -45,11 +45,11 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("AllowAll");
 
-// GLOBAL DEXTER CREDIT HEADERS
+// GLOBAL DEVELOPER CREDIT HEADERS
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Append("X-Developer", "KAIRO");
-    context.Response.Headers.Append("X-Powered-By", "Arena Auth - Developed by KAIRO");
+    context.Response.Headers.Append("X-Developer", "VINI");
+    context.Response.Headers.Append("X-Powered-By", "POWER X - Developed by VINI");
     await next();
 });
 
@@ -77,13 +77,13 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 Console.WriteLine("==========================================================");
-Console.WriteLine("          ⚡ ARENA AUTH SERVER STARTED ⚡             ");
+Console.WriteLine("          ⚡ POWER X SERVER STARTED ⚡             ");
 Console.WriteLine("==========================================================");
 Console.WriteLine("  API Endpoint:       http://localhost:5000/api/v1/auth   ");
 Console.WriteLine("  Admin Web Panel:    http://localhost:5000/index.html    ");
 Console.WriteLine("  *** Login to admin panel with your credentials ***      ");
-Console.WriteLine("  Default App Name:   ArenaApp                         ");
-Console.WriteLine("  Default Secret:     arena_secret_9999a8b7c6d5e4f321  ");
+Console.WriteLine("  Default App Name:   PowerXApp                        ");
+Console.WriteLine("  Default Secret:     powerx_secret_9999a8b7c6d5e4f321 ");
 Console.WriteLine("==========================================================");
 
 app.Run();

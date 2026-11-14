@@ -405,7 +405,7 @@ namespace BlackoutAuth.Server.Controllers
 
             int count = Math.Clamp(req.Count, 1, 100);
             var generatedKeys = new List<LicenseKey>();
-            string prefix = string.IsNullOrWhiteSpace(req.Prefix) ? "ARENA" : req.Prefix.Trim().ToUpperInvariant();
+            string prefix = string.IsNullOrWhiteSpace(req.Prefix) ? "POWERX" : req.Prefix.Trim().ToUpperInvariant();
 
             for (int i = 0; i < count; i++)
             {
