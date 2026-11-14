@@ -3,74 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BLACKOUT AUTH — Secure Licensing & Identity Control</title>
+  <title>POWER X — Secure Licensing & Identity Control</title>
   <!-- Tailwind CSS & Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" type="image/png" href="img/logo.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=3.0">
 </head>
-<body class="bg-[#07080B] text-slate-200 font-sans antialiased overflow-x-hidden selection:bg-purple-600 selection:text-white">
+<body class="bg-[#07080B] text-slate-200 font-sans antialiased overflow-x-hidden selection:bg-purple-600 selection:text-white relative">
 
-  <!-- LOGIN OVERLAY (Shows when not authenticated) -->
-  <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xl transition-all duration-300">
-    <div class="w-full max-w-md p-8 rounded-2xl bg-[#0d0f17]/90 border border-purple-500/20 shadow-2xl shadow-purple-950/40 relative overflow-hidden">
-      <!-- Glow effect -->
-      <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none"></div>
+  <!-- SITE BACKGROUND LOGO WATERMARK -->
+  <div class="site-bg-watermark" aria-hidden="true">
+    <img src="img/logo.png" alt="POWER X Background" class="site-bg-watermark-image">
+  </div>
 
-      <div class="text-center mb-8 relative z-10">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-700 to-indigo-500 shadow-lg shadow-purple-600/30 mb-4 border border-purple-400/30">
-          <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
+  <!-- LOGIN OVERLAY -->
+  <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 relative overflow-hidden" style="background: radial-gradient(ellipse at center, rgba(16, 24, 40, 0.65) 0%, rgba(6, 7, 10, 0.96) 75%); backdrop-filter: blur(12px);">
+    
+    <!-- Ambient Logo Watermark for Login Screen -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" aria-hidden="true">
+      <img src="img/logo.png" alt="POWER X Background" class="w-[520px] h-[520px] max-w-[85vw] max-h-[85vh] object-contain opacity-20 mix-blend-screen filter drop-shadow-[0_0_60px_rgba(168,85,247,0.55)]">
+    </div>
+
+    <div class="w-full max-w-[420px] p-8 sm:p-10 rounded-2xl bg-[#0f1014]/90 backdrop-blur-xl border border-purple-500/30 shadow-2xl shadow-purple-950/40 relative z-10">
+      
+      <!-- Brand Header -->
+      <div class="text-center mb-6">
+        <div class="w-20 h-20 mx-auto mb-3 rounded-2xl overflow-hidden border border-purple-500/50 shadow-lg shadow-purple-500/30 bg-[#07080b] p-1 flex items-center justify-center">
+          <img src="img/logo.png" alt="POWER X Logo" class="w-full h-full object-contain">
         </div>
-        <h2 class="text-2xl font-extrabold tracking-wider text-white font-['Outfit']">BLACKOUT <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">AUTH</span></h2>
-        <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest font-mono">Administration Portal</p>
+        <h2 class="text-2xl font-extrabold text-white tracking-wide font-['Outfit'] mb-1">
+          POWER <span class="text-purple-400">X</span>
+        </h2>
+        <p class="text-[11px] text-purple-300 font-mono tracking-widest uppercase">System Core & Licensing</p>
+        <p class="text-[13px] text-[#727a8a] font-sans mt-2">
+          Don't have an account yet? <a href="javascript:void(0)" onclick="showToast('Contact administrator to obtain an account.', 'info')" class="text-purple-400 hover:text-purple-300 hover:underline font-medium transition-colors">Sign up</a>
+        </p>
       </div>
 
-      <form id="loginForm" class="space-y-5 relative z-10" onsubmit="handleLogin(event)">
+      <!-- Login Form -->
+      <form id="loginForm" class="space-y-4" onsubmit="handleLogin(event)">
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">Username</label>
-          <div class="relative">
-            <i class="fa-solid fa-user absolute left-4 top-3.5 text-slate-500 text-sm"></i>
-            <input type="text" id="adminUser" required placeholder="admin" value="admin" class="w-full bg-[#131622] border border-slate-800 rounded-xl px-11 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono">
-          </div>
+          <input 
+            type="text" 
+            id="adminUser" 
+            required 
+            placeholder="Username" 
+            value="" 
+            autocomplete="username"
+            class="w-full bg-[#14151a] border border-[#22242d] focus:border-purple-500/70 rounded-xl px-4 py-3 text-sm text-white placeholder-[#555c6d] focus:outline-none focus:ring-1 focus:ring-purple-500/40 transition-all font-sans"
+          >
         </div>
 
         <div>
-          <label class="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">Master Key / Password</label>
-          <div class="relative">
-            <i class="fa-solid fa-lock absolute left-4 top-3.5 text-slate-500 text-sm"></i>
-            <input type="password" id="adminPass" required placeholder="••••••••••••" value="blackout1337" class="w-full bg-[#131622] border border-slate-800 rounded-xl px-11 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono">
+          <input 
+            type="password" 
+            id="adminPass" 
+            required 
+            placeholder="Password" 
+            value="" 
+            autocomplete="current-password"
+            class="w-full bg-[#14151a] border border-[#22242d] focus:border-purple-500/70 rounded-xl px-4 py-3 text-sm text-white placeholder-[#555c6d] focus:outline-none focus:ring-1 focus:ring-purple-500/40 transition-all font-sans"
+          >
+          <div class="flex justify-end mt-2">
+            <a href="javascript:void(0)" onclick="showToast('Contact administrator to reset your password.', 'info')" class="text-xs text-purple-400 hover:text-purple-300 hover:underline transition-colors font-sans">Forgot your password?</a>
           </div>
         </div>
 
-        <div id="loginError" class="hidden text-xs text-rose-400 bg-rose-950/40 border border-rose-800/50 p-3 rounded-lg text-center font-mono"></div>
+        <div id="loginError" class="hidden text-xs text-rose-400 bg-rose-950/30 border border-rose-900/40 p-3 rounded-xl text-center font-sans"></div>
 
-        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-purple-600/30 active:scale-[0.98] transition-all flex items-center justify-center space-x-2">
-          <span>Authorize Access</span>
-          <i class="fa-solid fa-arrow-right text-xs"></i>
+        <button 
+          type="submit" 
+          class="w-full py-3 px-4 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 hover:border-purple-400 text-white font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-900/30 active:scale-[0.99] mt-2 cursor-pointer"
+        >
+          <span>Log In</span>
+          <span class="text-base leading-none">&rarr;</span>
         </button>
       </form>
     </div>
   </div>
 
   <!-- MAIN APP CONTAINER -->
-  <div class="flex h-screen overflow-hidden">
+  <div class="flex h-screen overflow-hidden relative z-10">
     
     <!-- SIDEBAR -->
     <aside class="w-64 bg-[#0a0c12] border-r border-slate-800/80 flex flex-col justify-between shrink-0 relative z-20">
       <div>
         <!-- Logo -->
         <div class="h-20 flex items-center px-6 border-b border-slate-800/80 space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-md shadow-purple-600/20 border border-purple-400/20">
-            <i class="fa-solid fa-bolt text-lg text-white"></i>
+          <div class="w-11 h-11 rounded-xl overflow-hidden border border-purple-500/40 shadow-lg shadow-purple-500/20 shrink-0 bg-[#07080b] p-0.5 flex items-center justify-center">
+            <img src="img/logo.png" alt="POWER X Logo" class="w-full h-full object-contain">
           </div>
           <div>
-            <h1 class="font-extrabold text-lg tracking-wide text-white font-['Outfit']">BLACKOUT</h1>
-            <p class="text-[10px] text-purple-400 font-mono tracking-widest font-semibold uppercase -mt-1">Licensing Core</p>
+            <h1 class="font-extrabold text-lg tracking-wide text-white font-['Outfit']">POWER X</h1>
+            <p class="text-[10px] text-purple-400 font-mono tracking-widest font-semibold uppercase -mt-1">System Core</p>
           </div>
         </div>
 
@@ -116,14 +146,21 @@
       </div>
 
       <!-- User Profile / Logout -->
-      <div class="p-4 border-t border-slate-800/80">
+      <div class="p-4 border-t border-slate-800/80 space-y-3">
+        <!-- FIXED DEVELOPER CREDIT (VINI) -->
+        <div id="dexter-credit" class="text-center bg-purple-900/20 border border-purple-500/30 rounded-lg py-2 px-3 relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-cyan-600/10 pointer-events-none"></div>
+          <p class="text-[10px] text-purple-300 font-mono tracking-widest uppercase mb-0.5">Developed & Engineered by</p>
+          <p class="text-sm font-black text-white tracking-widest font-['Outfit']" style="text-shadow: 0 0 10px rgba(168,85,247,0.8);">VINI</p>
+        </div>
+
         <div class="flex items-center justify-between p-3 rounded-xl bg-[#11141f] border border-slate-800">
           <div class="flex items-center space-x-3 overflow-hidden">
-            <div class="w-8 h-8 rounded-lg bg-purple-600/30 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-xs shrink-0">
-              AD
+            <div class="w-8 h-8 rounded-lg bg-purple-600/30 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-xs shrink-0 font-['Outfit']">
+              VN
             </div>
             <div class="truncate">
-              <p class="text-xs font-semibold text-white truncate" id="adminNameDisplay">admin</p>
+              <p class="text-xs font-semibold text-white truncate" id="adminNameDisplay">VINI</p>
               <p class="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Online
               </p>
@@ -173,73 +210,48 @@
       <main class="flex-1 overflow-y-auto p-8 relative">
         
         <!-- ================= TAB: DASHBOARD ================= -->
-        <div id="tab-dashboard" class="tab-pane active space-y-8">
-          <!-- STAT CARDS -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Total Users</p>
-                  <h3 id="statTotalUsers" class="text-3xl font-extrabold text-white mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-purple-600/20 text-purple-400 border border-purple-500/30">
-                  <i class="fa-solid fa-users text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                <i class="fa-solid fa-check text-emerald-400"></i> Registered accounts
-              </p>
-            </div>
-
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Available Licenses</p>
-                  <h3 id="statUnusedKeys" class="text-3xl font-extrabold text-white mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-cyan-600/20 text-cyan-400 border border-cyan-500/30">
-                  <i class="fa-solid fa-key text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                <span id="statTotalKeys">0</span> total generated
-              </p>
-            </div>
-
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Logins Today</p>
-                  <h3 id="statLoginsToday" class="text-3xl font-extrabold text-emerald-400 mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-emerald-600/20 text-emerald-400 border border-emerald-500/30">
-                  <i class="fa-solid fa-arrow-right-to-bracket text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                <i class="fa-solid fa-circle text-[8px] text-emerald-400"></i> Successful sessions
-              </p>
-            </div>
-
-            <div class="stat-card">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-mono uppercase text-slate-400 tracking-wider">Security Alerts</p>
-                  <h3 id="statSecurityAlerts" class="text-3xl font-extrabold text-rose-400 mt-2 font-mono">0</h3>
-                </div>
-                <div class="stat-icon bg-rose-600/20 text-rose-400 border border-rose-500/30">
-                  <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mt-4 flex items-center gap-1 font-mono">
-                HWID mismatches & attacks
-              </p>
+        <div id="tab-dashboard" class="tab-pane active space-y-6">
+          
+          <!-- Breadcrumb & Subscription Banner (Image 1 Style) -->
+          <div class="flex flex-wrap items-center justify-between text-xs font-mono text-slate-400 gap-2 pb-1 border-b border-slate-800/60">
+            <div class="flex items-center space-x-2">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-house text-slate-400 text-[11px]"></i> Dashboard</span>
+              <span class="text-slate-600">&raquo;</span>
+              <span>Overview</span>
+              <span class="text-slate-600">&raquo;</span>
+              <span class="text-rose-400 font-medium">You don't have a subscription! <a href="javascript:void(0)" onclick="showToast('POWER X Pro Lifetime Active', 'info')" class="text-purple-400 hover:underline">Upgrade Now.</a></span>
             </div>
           </div>
 
-          <!-- CHART & ACTIVITY -->
+          <!-- Page Heading -->
+          <div>
+            <h2 class="text-2xl font-bold text-white font-['Outfit']">Dashboard Overview</h2>
+            <p class="text-xs text-slate-400 mt-1">Real-time telemetry and licensing analytics. Applications are the backbone of all the data. <a href="javascript:void(0)" onclick="switchTab('apps')" class="text-blue-400 hover:underline">Manage Applications.</a></p>
+          </div>
+
+          <!-- Top Stats Row (4 Metric Cards matching KeyAuth Image 1) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statTotalUsers">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Total Users</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statUnusedKeys">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Available Licenses</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statLoginsToday">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Logins Today</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="statSecurityAlerts">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Security Alerts</div>
+            </div>
+          </div>
+
+          <!-- CHART & ACTIVITY (KeyAuth Sleek Panels) -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 glass-panel p-6">
+            <div class="lg:col-span-2 p-6 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg">
               <div class="flex items-center justify-between mb-6">
                 <div>
                   <h3 class="font-bold text-white text-base">Authentication Activity (7 Days)</h3>
@@ -260,7 +272,7 @@
             </div>
 
             <!-- QUICK ACTIONS / APP STATS -->
-            <div class="glass-panel p-6 flex flex-col justify-between">
+            <div class="p-6 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg flex flex-col justify-between">
               <div>
                 <h3 class="font-bold text-white text-base mb-1">Quick Actions</h3>
                 <p class="text-xs text-slate-400 font-mono mb-4">Fast generator & security triggers</p>
@@ -271,20 +283,20 @@
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                   </button>
 
-                  <button onclick="switchTab('apps'); openAppModal();" class="w-full py-3 px-4 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-300 font-mono text-xs flex items-center justify-between transition-all">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-folder-plus text-cyan-400"></i> Create New Application</span>
+                  <button onclick="switchTab('apps'); openAppModal();" class="w-full py-3 px-4 rounded-xl bg-[#3b5bfd]/20 hover:bg-[#3b5bfd]/30 border border-[#3b5bfd]/30 text-blue-300 font-mono text-xs flex items-center justify-between transition-all">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-folder-plus text-blue-400"></i> Create New Application</span>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                   </button>
 
-                  <button onclick="switchTab('vars')" class="w-full py-3 px-4 rounded-xl bg-[#151926] hover:bg-[#1c2133] border border-slate-800 text-slate-300 font-mono text-xs flex items-center justify-between transition-all">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-cloud text-slate-400"></i> Manage Cloud Variables</span>
+                  <button onclick="switchTab('apps');" class="w-full py-3 px-4 rounded-xl bg-[#13151f] hover:bg-[#1a1d2b] border border-[#202332] text-slate-300 font-mono text-xs flex items-center justify-between transition-all">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-cubes text-purple-400"></i> Manage Applications</span>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                   </button>
                 </div>
               </div>
 
               <!-- SDK Integration Info -->
-              <div class="mt-6 p-4 rounded-xl bg-[#090b10] border border-slate-800/80">
+              <div class="mt-6 p-4 rounded-xl bg-[#13151f] border border-[#202332]">
                 <p class="text-[11px] font-mono text-purple-400 font-semibold uppercase mb-1">C# & C++ Ready</p>
                 <p class="text-xs text-slate-400 leading-relaxed">
                   SDK headers and pre-built binaries are ready for 1-minute drop-in integration into your loader or tool.
@@ -296,20 +308,153 @@
 
         <!-- ================= TAB: APPLICATIONS ================= -->
         <div id="tab-apps" class="tab-pane hidden space-y-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-lg font-bold text-white">Managed Applications</h3>
-              <p class="text-xs text-slate-400 font-mono mt-0.5">Control API keys, versions, and security locks</p>
+          
+          <!-- Breadcrumb & Subscription Banner (Image 1) -->
+          <div class="flex flex-wrap items-center justify-between text-xs font-mono text-slate-400 gap-2 pb-1 border-b border-slate-800/60">
+            <div class="flex items-center space-x-2">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-house text-slate-400 text-[11px]"></i> Manage Apps</span>
+              <span class="text-slate-600">&raquo;</span>
+              <span>Current Application: <strong id="currentAppBreadcrumb" class="text-white font-bold">PowerXApp</strong></span>
+              <span class="text-slate-600">&raquo;</span>
+              <span class="text-rose-400 font-medium">You don't have a subscription! <a href="javascript:void(0)" onclick="showToast('POWER X Pro Lifetime Active', 'info')" class="text-purple-400 hover:underline">Upgrade Now.</a></span>
             </div>
-            <button onclick="openAppModal()" class="btn-primary">
-              <i class="fa-solid fa-plus text-xs"></i>
-              <span>Create Application</span>
-            </button>
           </div>
 
-          <div id="appsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Dynamic Apps Loaded Here -->
+          <!-- Page Heading -->
+          <div>
+            <h2 class="text-2xl font-bold text-white font-['Outfit']">Manage Applications</h2>
+            <p class="text-xs text-slate-400 mt-1">Manage your applications. Applications are the backbone of all the data. <a href="javascript:void(0)" onclick="switchTab('sdk')" class="text-blue-400 hover:underline">Learn More.</a></p>
           </div>
+
+          <!-- Top Stats Row (4 Metric Cards matching Image 1) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatTotal">1</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Total Apps</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatActive">1</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Active</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatPaused">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Paused</div>
+            </div>
+            <div class="p-5 rounded-xl bg-[#0e1017] border border-[#1b1e2a] text-center shadow-lg">
+              <div class="text-3xl font-extrabold text-white font-['Outfit']" id="appStatSessions">0</div>
+              <div class="text-xs text-slate-400 font-medium mt-1">Active Sessions</div>
+            </div>
+          </div>
+
+          <!-- Main Two-Column Split (Left: Credentials, Right: My Applications) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT: Application Credentials -->
+            <div class="lg:col-span-5 p-6 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-4">
+              <div>
+                <h3 class="text-base font-bold text-white">Application Credentials</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Simply replace the placeholder code in the example with these</p>
+              </div>
+
+              <!-- Toggle: Display Code Snippet -->
+              <div class="flex items-center space-x-3 pt-1">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="toggleCodeSnippet" onchange="toggleCodeSnippetPreview()" class="sr-only peer">
+                  <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+                <span class="text-xs text-slate-400 font-medium">Display Code Snippet</span>
+              </div>
+
+              <!-- Credential Fields -->
+              <div class="space-y-3 pt-1">
+                <!-- 1. Application Name -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Application Name</span>
+                    <span id="credAppName" class="text-xs font-mono font-bold text-white truncate block mt-0.5">PowerXApp</span>
+                  </div>
+                  <button onclick="copyElementText('credAppName')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+
+                <!-- 2. Account Owner ID -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Account Owner ID</span>
+                    <span id="credOwnerId" class="text-xs font-mono font-bold text-white truncate block mt-0.5">OWNER-001</span>
+                  </div>
+                  <button onclick="copyElementText('credOwnerId')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+
+                <!-- 3. Application Secret -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden pr-2">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Application Secret</span>
+                    <span id="credAppSecret" class="text-xs font-mono text-slate-300 truncate block mt-0.5">••••••••••••••••••••••••••••••••</span>
+                  </div>
+                  <button onclick="copyElementText('credAppSecret')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+
+                <!-- 4. Application Version -->
+                <div class="p-3.5 rounded-xl bg-[#13151f] border border-[#1f2230] flex items-center justify-between">
+                  <div class="overflow-hidden">
+                    <span class="block text-[10px] font-mono uppercase text-slate-400 tracking-wider">Application Version</span>
+                    <span id="credAppVersion" class="text-xs font-mono font-bold text-white truncate block mt-0.5">1.0</span>
+                  </div>
+                  <button onclick="copyElementText('credAppVersion')" class="text-slate-400 hover:text-white p-1.5 transition-colors" title="Copy"><i class="fa-regular fa-copy text-sm"></i></button>
+                </div>
+              </div>
+
+              <!-- Refresh Secret Button -->
+              <button onclick="refreshCurrentAppSecret()" class="py-2.5 px-4 rounded-xl bg-[#d97706] hover:bg-[#b45309] text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow">
+                <i class="fa-solid fa-rotate text-xs"></i>
+                <span>Refresh Application Secret</span>
+              </button>
+
+              <!-- Blue Notice Alert -->
+              <div class="p-4 rounded-xl bg-[#1e293b]/60 border border-blue-500/30 text-xs text-slate-300 flex items-start gap-3">
+                <i class="fa-solid fa-circle-info text-blue-400 text-sm mt-0.5 shrink-0"></i>
+                <div class="leading-relaxed">
+                  <strong class="text-white">Notice!</strong>
+                  <p class="text-[11px] text-slate-300 mt-0.5">Application secrets are only displayed for users using our older API endpoints. If you're using our newer API (1.3), application secrets are not used!</p>
+                </div>
+              </div>
+
+              <!-- Code Snippet Box -->
+              <div id="codeSnippetBox" class="hidden p-3.5 rounded-xl bg-[#0a0c12] border border-slate-800 font-mono text-[11px] text-purple-300 overflow-x-auto">
+                <pre id="codeSnippetPre"></pre>
+              </div>
+            </div>
+
+            <!-- RIGHT: My Applications -->
+            <div class="lg:col-span-7 space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h3 class="text-base font-bold text-white">My Applications</h3>
+                <div class="relative w-full sm:w-64">
+                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                  <input type="text" id="appSearchInput" oninput="renderApps()" placeholder="Search applications..." class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+              </div>
+
+              <!-- Filter Dropdown & Create Button -->
+              <div class="space-y-3">
+                <select id="appsFilterSelect" onchange="handleAppSelectChange(this.value)" class="w-full bg-[#13151f] border border-[#202332] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
+                  <option value="">All Applications</option>
+                </select>
+
+                <button onclick="openAppModal()" class="w-full py-2.5 px-4 rounded-xl bg-[#3b5bfd] hover:bg-[#2d4df5] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
+                  <i class="fa-solid fa-plus text-xs"></i>
+                  <span>Create Application</span>
+                </button>
+              </div>
+
+              <!-- Dynamic Cards Container -->
+              <div id="appsList" class="space-y-4">
+                <!-- Injected via renderApps() -->
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
         <!-- ================= TAB: LICENSES ================= -->
@@ -515,6 +660,92 @@
             </div>
           </div>
 
+          <!-- SDK Package Downloads & Anti-Crack Overview -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="glass-panel p-5 border border-purple-500/30 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 px-2 py-0.5 rounded bg-purple-950/40 border border-purple-800/40">C++ / Native</span>
+                  <i class="fa-solid fa-microchip text-purple-400"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white font-['Outfit']">ArenaAuth.hpp</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Single zero-dependency header with native WinHTTP, BCrypt encryption, HWID lock, and anti-debugger.
+                </p>
+              </div>
+              <a href="/api/download/hpp" download="ArenaAuth.hpp" class="mt-4 w-full py-2.5 px-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-mono text-xs flex items-center justify-center space-x-2 transition-all">
+                <i class="fa-solid fa-download"></i>
+                <span>Download C++ Header (.hpp)</span>
+              </a>
+            </div>
+
+            <div class="glass-panel p-5 border border-cyan-500/30 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-400 px-2 py-0.5 rounded bg-cyan-950/40 border border-cyan-800/40">C# Source File</span>
+                  <i class="fa-brands fa-microsoft text-cyan-400"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white font-['Outfit']">ArenaApp.cs</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Drop-in single source file for .NET 6/7/8/9 with complete auth client, AES-256 decryption, and HWID.
+                </p>
+              </div>
+              <a href="/api/download/cs" download="ArenaApp.cs" class="mt-4 w-full py-2.5 px-3 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-mono text-xs flex items-center justify-center space-x-2 transition-all">
+                <i class="fa-solid fa-download"></i>
+                <span>Download C# Source (.cs)</span>
+              </a>
+            </div>
+
+            <div class="glass-panel p-5 border border-indigo-500/30 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400 px-2 py-0.5 rounded bg-indigo-950/40 border border-indigo-800/40">Pre-built Assembly</span>
+                  <i class="fa-solid fa-cube text-indigo-400"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white font-['Outfit']">ArenaAuth.SDK.CSharp.dll</h4>
+                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Compiled release library ready to reference directly into Visual Studio or any .NET Loader project.
+                </p>
+              </div>
+              <a href="/api/download/dll" download="ArenaAuth.SDK.CSharp.dll" class="mt-4 w-full py-2.5 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-mono text-xs flex items-center justify-center space-x-2 transition-all">
+                <i class="fa-solid fa-download"></i>
+                <span>Download Pre-built DLL</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Anti-Crack & Unbypassable Protection Box -->
+          <div class="p-5 rounded-2xl bg-[#0e111d] border border-amber-500/30 relative overflow-hidden">
+            <div class="flex items-start space-x-4">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-lg shrink-0">
+                <i class="fa-solid fa-shield-cat"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="text-sm font-bold text-white font-['Outfit'] flex items-center gap-2">
+                  <span>Anti-Crack & Anti-Bypass Architecture (How To Prevent Patching & Cracking)</span>
+                  <span class="text-[10px] text-amber-400 bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 rounded font-mono">Military-Grade</span>
+                </h4>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                  If you only check <code class="text-amber-300">if (auth.LicenseOnly(key))</code> in your loader, crackers can patch that single boolean instruction in x64dbg/dnSpy! To make your project <strong>completely impossible to bypass</strong>, use these 3 built-in POWER X layers:
+                </p>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+                  <div class="p-3 rounded-lg bg-[#070910] border border-slate-800">
+                    <strong class="text-amber-400 block mb-1">1. Encrypted Cloud Variables</strong>
+                    <span class="text-slate-400 text-[11px] leading-tight block">Never hardcode your game offsets, sensitive URLs or secrets in your client. Store them in <em>Cloud Variables</em>. The server encrypts them with a dynamic session key that crackers cannot forge.</span>
+                  </div>
+                  <div class="p-3 rounded-lg bg-[#070910] border border-slate-800">
+                    <strong class="text-purple-400 block mb-1">2. Protected Binary Delivery</strong>
+                    <span class="text-slate-400 text-[11px] leading-tight block">Do not store your actual payload DLL inside the loader. Upload it to <em>Protected Files</em>. Your client downloads and reflects it directly into memory only after server authorization.</span>
+                  </div>
+                  <div class="p-3 rounded-lg bg-[#070910] border border-slate-800">
+                    <strong class="text-emerald-400 block mb-1">3. Native Anti-Debug & Heartbeat</strong>
+                    <span class="text-slate-400 text-[11px] leading-tight block">Turn on <code class="text-emerald-300">auth.EnableAntiDebug = true</code> to detect x64dbg, CheatEngine, Wireshark, dnSpy and process tampering. Use periodic <code class="text-emerald-300">Check()</code> heartbeats.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Language Selector -->
           <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
             <button id="sdkBtnCSharp" onclick="selectSdkLang('csharp')" class="px-5 py-2.5 rounded-xl font-mono text-xs font-bold transition-all bg-purple-600 text-white shadow-lg shadow-purple-600/30 flex items-center gap-2">
@@ -533,13 +764,13 @@
               <div class="p-4 rounded-xl bg-[#0f121d] border border-slate-800">
                 <span class="text-purple-400 font-mono font-bold text-xs uppercase tracking-wider block mb-1">Step 1 — Include Library</span>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Reference <code>BlackoutAuth.SDK.CSharp.dll</code> or add <code>BlackoutApp.cs</code> directly into your C# project.
+                  Reference <code>ArenaAuth.SDK.CSharp.dll</code> or add <code>ArenaApp.cs</code> directly into your C# project.
                 </p>
               </div>
               <div class="p-4 rounded-xl bg-[#0f121d] border border-slate-800">
                 <span class="text-purple-400 font-mono font-bold text-xs uppercase tracking-wider block mb-1">Step 2 — Initialize</span>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Create <code>new BlackoutApp(...)</code> with your App Name, Owner ID, and Secret below.
+                  Create <code>new ArenaApp(...)</code> with your App Name, Owner ID, and Secret below.
                 </p>
               </div>
               <div class="p-4 rounded-xl bg-[#0f121d] border border-slate-800">
@@ -596,13 +827,13 @@
               <div class="p-4 rounded-xl bg-[#0f121d] border border-slate-800">
                 <span class="text-cyan-400 font-mono font-bold text-xs uppercase tracking-wider block mb-1">Step 1 — Zero Dependencies</span>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Drop <code>BlackoutAuth.hpp</code> into your C++ project. No curl or OpenSSL needed! Uses native Windows <code>WinHTTP</code> & <code>BCrypt</code>.
+                  Drop <code>ArenaAuth.hpp</code> into your C++ project. No curl or OpenSSL needed! Uses native Windows <code>WinHTTP</code> & <code>BCrypt</code>.
                 </p>
               </div>
               <div class="p-4 rounded-xl bg-[#0f121d] border border-slate-800">
                 <span class="text-cyan-400 font-mono font-bold text-xs uppercase tracking-wider block mb-1">Step 2 — Handshake</span>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Initialize <code>Blackout::Auth app(...)</code> with your App credentials below and call <code>app.Init()</code>.
+                  Initialize <code>Arena::Auth app(...)</code> with your App credentials below and call <code>app.Init()</code>.
                 </p>
               </div>
               <div class="p-4 rounded-xl bg-[#0f121d] border border-slate-800">
@@ -656,11 +887,127 @@
 
         <!-- ================= TAB: SETTINGS ================= -->
         <div id="tab-settings" class="tab-pane hidden space-y-8 max-w-3xl">
-          <div class="glass-panel p-8">
-            <h3 class="text-lg font-bold text-white mb-1">Change Admin Password</h3>
-            <p class="text-xs text-slate-400 font-mono mb-6">Update the master administrative password</p>
 
-            <form onsubmit="handlePasswordChange(event)" class="space-y-4">
+          <!-- 1. Application Version & Settings Card -->
+          <div class="p-8 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#1b1e2a]">
+              <div>
+                <h3 class="text-lg font-bold text-white font-['Outfit'] flex items-center gap-2">
+                  <i class="fa-solid fa-code-branch text-purple-400"></i>
+                  <span>Application Version & Settings</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Control client app version, auto-update URLs, and security locks</p>
+              </div>
+              <span id="settingsCurrentVersionBadge" class="self-start sm:self-auto px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-purple-950/60 text-purple-300 border border-purple-800/60 shadow-sm">
+                v1.0
+              </span>
+            </div>
+
+            <form onsubmit="handleSaveAppSettings(event)" class="space-y-5">
+              <!-- Select Target Application -->
+              <div>
+                <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Target Application</label>
+                <div class="relative">
+                  <i class="fa-solid fa-cube absolute left-3.5 top-3.5 text-purple-400 text-xs"></i>
+                  <select id="settingsAppSelect" onchange="onSettingsAppChanged(this.value)" class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+                    <!-- Dynamic Options -->
+                  </select>
+                </div>
+              </div>
+
+              <!-- Two Column: Version & Name -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- App Version Input -->
+                <div>
+                  <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5 flex items-center justify-between">
+                    <span>Application Version</span>
+                    <span class="text-rose-400 font-bold text-[10px]">REQUIRED</span>
+                  </label>
+                  <div class="relative">
+                    <i class="fa-solid fa-tag absolute left-3.5 top-3.5 text-slate-500 text-xs"></i>
+                    <input 
+                      type="text" 
+                      id="settingsAppVersion" 
+                      required 
+                      placeholder="e.g. 1.0 or 2.1" 
+                      class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500 font-bold"
+                    >
+                  </div>
+                  <span class="text-[10px] text-slate-500 font-mono mt-1 block">Clients check this during auth.Init()</span>
+                </div>
+
+                <!-- App Name Input -->
+                <div>
+                  <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Application Name</label>
+                  <div class="relative">
+                    <i class="fa-solid fa-pen absolute left-3.5 top-3.5 text-slate-500 text-xs"></i>
+                    <input 
+                      type="text" 
+                      id="settingsAppName" 
+                      required 
+                      placeholder="PowerXApp" 
+                      class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                    >
+                  </div>
+                  <span class="text-[10px] text-slate-500 font-mono mt-1 block">Display identifier for your app</span>
+                </div>
+              </div>
+
+              <!-- Download URL for Auto-updater -->
+              <div>
+                <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Auto-Update Download URL (Optional)</label>
+                <div class="relative">
+                  <i class="fa-solid fa-link absolute left-3.5 top-3.5 text-slate-500 text-xs"></i>
+                  <input 
+                    type="url" 
+                    id="settingsAppDownloadUrl" 
+                    placeholder="https://yourdomain.com/downloads/LatestUpdate.exe" 
+                    class="w-full bg-[#13151f] border border-[#202332] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                  >
+                </div>
+                <span class="text-[10px] text-slate-500 font-mono mt-1 block">Sent to outdated clients when update is required</span>
+              </div>
+
+              <!-- Feature Toggles -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <label class="flex items-center space-x-3 p-3.5 rounded-xl bg-[#13151f] border border-[#202332] cursor-pointer hover:border-slate-700 transition-colors">
+                  <input type="checkbox" id="settingsAppEnabled" class="w-4 h-4 rounded text-purple-600 bg-slate-900 border-slate-700 focus:ring-0">
+                  <div>
+                    <span class="text-xs font-bold text-white block">Application Active</span>
+                    <span class="text-[10px] text-slate-400 block">Allow logins and licensing</span>
+                  </div>
+                </label>
+
+                <label class="flex items-center space-x-3 p-3.5 rounded-xl bg-[#13151f] border border-[#202332] cursor-pointer hover:border-slate-700 transition-colors">
+                  <input type="checkbox" id="settingsAppHwidLock" class="w-4 h-4 rounded text-purple-600 bg-slate-900 border-slate-700 focus:ring-0">
+                  <div>
+                    <span class="text-xs font-bold text-white block">HWID Lock Enforced</span>
+                    <span class="text-[10px] text-slate-400 block">Lock keys to 1 PC fingerprint</span>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-2 flex items-center gap-3">
+                <button type="submit" class="py-2.5 px-6 rounded-xl bg-[#3b5bfd] hover:bg-[#2d4df5] text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
+                  <i class="fa-solid fa-floppy-disk text-xs"></i>
+                  <span>Save Version & Settings</span>
+                </button>
+                <span id="settingsSaveSuccessIndicator" class="hidden text-xs text-emerald-400 font-mono flex items-center gap-1.5">
+                  <i class="fa-solid fa-check"></i> Saved successfully
+                </span>
+              </div>
+            </form>
+          </div>
+
+          <!-- 2. Master Admin Password -->
+          <div class="p-8 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white font-['Outfit'] mb-1">Change Admin Password</h3>
+              <p class="text-xs text-slate-400 font-mono">Update the master administrative password</p>
+            </div>
+
+            <form onsubmit="handlePasswordChange(event)" class="space-y-4 pt-1">
               <div>
                 <label class="block text-xs font-mono uppercase text-slate-400 mb-1">Current Password</label>
                 <input type="password" id="currentPass" required class="form-input">
@@ -675,11 +1022,14 @@
             </form>
           </div>
 
-          <div class="glass-panel p-8">
-            <h3 class="text-lg font-bold text-white mb-1">Discord Webhook Test</h3>
-            <p class="text-xs text-slate-400 font-mono mb-6">Send a test notification embed to verify connection</p>
+          <!-- 3. Discord Webhook Test -->
+          <div class="p-8 rounded-xl bg-[#0e1017] border border-[#1b1e2a] shadow-lg space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-white font-['Outfit'] mb-1">Discord Webhook Test</h3>
+              <p class="text-xs text-slate-400 font-mono">Send a test notification embed to verify connection</p>
+            </div>
 
-            <div class="space-y-4">
+            <div class="space-y-4 pt-1">
               <div>
                 <label class="block text-xs font-mono uppercase text-slate-400 mb-1">Webhook URL</label>
                 <input type="url" id="testWebhookUrl" placeholder="https://discord.com/api/webhooks/..." class="form-input">
@@ -690,6 +1040,7 @@
               </button>
             </div>
           </div>
+
         </div>
 
       </main>
@@ -706,7 +1057,7 @@
             <i class="fa-solid fa-graduation-cap"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold text-white font-['Outfit']">How Blackout Auth Works — Step-by-Step Guide</h3>
+            <h3 class="text-base font-bold text-white font-['Outfit']">How POWER X Works — Step-by-Step Guide</h3>
             <p class="text-xs text-slate-400 font-mono">Follow these 4 simple steps to protect your applications</p>
           </div>
         </div>
@@ -761,7 +1112,7 @@
               <span class="text-[10px] text-indigo-400 bg-indigo-950/50 border border-indigo-800/40 px-2 py-0.5 rounded font-mono">Step 3</span>
             </h4>
             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-              Go to <strong>Licenses &rarr; Generate Keys</strong>. Choose your custom prefix (e.g. <code>BLACKOUT-PRO</code>), duration, level, quantity, and <strong>Max Uses per key</strong> (how many users can redeem this key). One-click export to <code>.txt</code> is supported!
+              Go to <strong>Licenses &rarr; Generate Keys</strong>. Choose your custom prefix (e.g. <code>POWERX-PRO</code>), duration, level, quantity, and <strong>Max Uses per key</strong> (how many users can redeem this key). One-click export to <code>.txt</code> is supported!
             </p>
             <div class="mt-2.5 flex items-center gap-3">
               <button onclick="closeModal('walkthroughModal'); switchTab('keys'); openKeyModal();" class="text-[11px] font-mono font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5">
@@ -819,7 +1170,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="modal-label">Username</label>
-            <input type="text" id="userCreateName" required placeholder="dexter" class="form-input">
+            <input type="text" id="userCreateName" required placeholder="vini" class="form-input">
           </div>
           <div>
             <label class="modal-label">Password</label>
@@ -872,7 +1223,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="modal-label">Key Prefix</label>
-            <input type="text" id="genPrefix" value="BLACKOUT" class="form-input">
+            <input type="text" id="genPrefix" value="POWERX" class="form-input">
           </div>
           <div>
             <label class="modal-label">Amount (1-100)</label>
@@ -1045,6 +1396,6 @@
   <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
   <!-- Application Logic -->
-  <script src="js/dashboard.js"></script>
+  <script src="js/dashboard.js?v=2.7"></script>
 </body>
 </html>
