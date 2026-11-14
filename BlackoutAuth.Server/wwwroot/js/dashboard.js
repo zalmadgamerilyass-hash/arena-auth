@@ -90,10 +90,10 @@ async function initDashboard() {
     setTimeout(openWalkthroughModal, 400);
   }
 
-  // ANTI-SKID / WATERMARK PROTECTION: Ensure VINI credit cannot be removed
+  // ANTI-SKID / WATERMARK PROTECTION: Ensure KAIRO credit cannot be removed
   setInterval(() => {
     const cred = document.getElementById('dexter-credit');
-    if (!cred || !cred.innerText.includes('KAIRO')) {
+    if (!cred || !cred.innerText.includes('KAIRO  ')) {
       document.body.innerHTML = `
         <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#000;color:red;font-family:monospace;flex-direction:column;text-align:center;">
           <h1 style="font-size:3rem;margin-bottom:10px;">🚨 COPYRIGHT VIOLATION 🚨</h1>
