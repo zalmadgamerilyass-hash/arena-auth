@@ -1,0 +1,14 @@
+{
+  "name": "arena-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord Bot for Arena / POWER X Auth System",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7"
+  }
+}

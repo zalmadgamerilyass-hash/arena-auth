@@ -18,3 +18,12 @@
 # Logs
 *.log
 BlackoutAuth.SDK.Cpp/include/ArenaAuth.hpp
+
+# Environment & Secrets
+.env
+*.env
+DiscordBot/.env
+
+# Node modules
+node_modules/
+**/node_modules/
