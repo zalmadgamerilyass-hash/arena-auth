@@ -12,9 +12,15 @@ import {
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
+const ADMIN_ROLE_ID = process.env.ADMIN_ROLE_ID;
+
+// KeyAuth Configuration
+const KEYAUTH_SELLER_KEY = process.env.KEYAUTH_SELLER_KEY;
+const KEYAUTH_KEY_PREFIX = process.env.KEYAUTH_KEY_PREFIX || 'POWERX';
+
+// Local Server Configuration
 const API_URL = (process.env.API_BASE_URL || 'http://localhost:5000/api/bot').replace(/\/+$/, '');
 const BOT_SECRET = process.env.BOT_SECRET || 'zyrex-bot-9f4c2e7a1b8d6f3e5c0a7b4d2f8e1c6a';
-const ADMIN_ROLE_ID = process.env.ADMIN_ROLE_ID;
 
 // Colors
 const COLOR_PRIMARY = 0x8B5CF6; // Purple
@@ -22,8 +28,43 @@ const COLOR_SUCCESS = 0x10B981; // Green
 const COLOR_ERROR = 0xEF4444;   // Red
 const COLOR_WARNING = 0xF59E0B; // Orange
 
-// Helper for API requests
-async function callApi(endpoint, method = 'GET', body = null) {
+const isKeyAuthMode = Boolean(KEYAUTH_SELLER_KEY && KEYAUTH_SELLER_KEY.trim().length > 0);
+
+console.log('========================================================');
+if (isKeyAuthMode) {
+    console.log('🌐 Mode: KEYAUTH CLOUD API (keyauth.win)');
+    console.log(`🔑 Key Prefix: ${KEYAUTH_KEY_PREFIX}`);
+} else {
+    console.log('💻 Mode: LOCAL AUTH SERVER');
+    console.log(`🔗 Target URL: ${API_URL}`);
+}
+console.log('========================================================');
+
+// Helper for KeyAuth Seller API
+async function callKeyAuth(params) {
+    const query = new URLSearchParams({
+        sellerkey: KEYAUTH_SELLER_KEY.trim(),
+        format: 'json',
+        ...params
+    });
+
+    const url = `https://keyauth.win/api/seller/?${query.toString()}`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json().catch(() => null);
+        if (!data) {
+            return { ok: false, message: 'Invalid response from KeyAuth API' };
+        }
+        return { ok: Boolean(data.success), data, message: data.message };
+    } catch (err) {
+        console.error('[KeyAuth API Error]:', err.message);
+        return { ok: false, message: err.message };
+    }
+}
+
+// Helper for Local API requests
+async function callLocalApi(endpoint, method = 'GET', body = null) {
     const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
     const headers = {
         'x-bot-secret': BOT_SECRET,
@@ -44,7 +85,7 @@ async function callApi(endpoint, method = 'GET', body = null) {
         const data = await res.json().catch(() => null);
         return { ok: res.ok, status: res.status, data };
     } catch (err) {
-        console.error(`[API Error] ${method} ${url}:`, err.message);
+        console.error(`[Local API Error] ${method} ${url}:`, err.message);
         return { ok: false, status: 0, error: err.message };
     }
 }
@@ -64,7 +105,7 @@ function isUserAuthorized(interaction) {
 const commands = [
     new SlashCommandBuilder()
         .setName('genkey')
-        .setDescription('🔑 Generate new license key(s) for Arena / PowerX Auth')
+        .setDescription('🔑 Generate new license key(s) for POWER X Auth')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addIntegerOption(opt =>
             opt.setName('days')
@@ -143,7 +184,7 @@ const commands = [
 
     new SlashCommandBuilder()
         .setName('stats')
-        .setDescription('📊 View Auth Server statistics (total keys, apps, users)')
+        .setDescription('📊 View Auth statistics (keys, users, etc.)')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
@@ -163,7 +204,6 @@ const client = new Client({
 async function registerCommands() {
     if (!TOKEN || !CLIENT_ID) {
         console.warn('⚠️ [Discord] DISCORD_TOKEN or CLIENT_ID is missing in .env!');
-        console.warn('Please fill in .env to register slash commands.');
         return;
     }
 
@@ -174,19 +214,17 @@ async function registerCommands() {
         const commandJson = commands.map(c => c.toJSON());
 
         if (GUILD_ID && GUILD_ID.trim().length > 0) {
-            // Guild-specific (instant update)
             await rest.put(
                 Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID.trim()),
                 { body: commandJson }
             );
-            console.log(`✅ Successfully registered commands for Guild ID: ${GUILD_ID}`);
+            console.log(`✅ Successfully registered commands for Guild: ${GUILD_ID}`);
         } else {
-            // Global commands
             await rest.put(
                 Routes.applicationCommands(CLIENT_ID),
                 { body: commandJson }
             );
-            console.log('✅ Successfully registered global commands (may take a few minutes to cache).');
+            console.log('✅ Successfully registered global commands.');
         }
     } catch (error) {
         console.error('❌ Failed to register slash commands:', error);
@@ -196,7 +234,6 @@ async function registerCommands() {
 client.once('ready', async () => {
     console.log('========================================================');
     console.log(`🤖 Bot is online as ${client.user.tag}`);
-    console.log(`🔗 Connecting to Auth Server at: ${API_URL}`);
     console.log('========================================================');
     await registerCommands();
 });
@@ -205,7 +242,6 @@ client.once('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
-    // Check Permissions
     if (interaction.commandName !== 'help' && !isUserAuthorized(interaction)) {
         return interaction.reply({
             embeds: [
@@ -220,7 +256,9 @@ client.on('interactionCreate', async (interaction) => {
 
     const { commandName } = interaction;
 
+    // ==========================================
     // COMMAND: /genkey
+    // ==========================================
     if (commandName === 'genkey') {
         const days = interaction.options.getInteger('days') ?? 30;
         const count = interaction.options.getInteger('count') ?? 1;
@@ -230,51 +268,95 @@ client.on('interactionCreate', async (interaction) => {
 
         await interaction.deferReply({ ephemeral: !isPublic });
 
-        const reqBody = {
-            count: count,
-            durationDays: days,
-            ownerDiscordId: targetUser ? targetUser.id : interaction.user.id,
-            ownerDiscordName: targetUser ? targetUser.tag : interaction.user.tag
-        };
+        let generatedKeys = [];
 
-        const res = await callApi('/keys/generate', 'POST', reqBody);
+        if (isKeyAuthMode) {
+            // KeyAuth API mode
+            const mask = `${KEYAUTH_KEY_PREFIX}-******-******-******`;
+            const noteText = customNote
+                ? customNote
+                : targetUser
+                    ? `User: ${targetUser.tag} (${targetUser.id})`
+                    : `By: ${interaction.user.tag}`;
 
-        if (!res.ok || !res.data?.keys) {
-            return interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setTitle('❌ Key Generation Failed')
-                        .setDescription(`Could not connect to Auth API or request failed.\n\`Status: ${res.status}\``)
-                        .setColor(COLOR_ERROR)
-                ]
+            const res = await callKeyAuth({
+                type: 'add',
+                expiry: days,
+                mask: mask,
+                amount: count,
+                level: 1,
+                note: noteText
             });
+
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Key Generation Failed (KeyAuth)')
+                            .setDescription(`KeyAuth returned an error:\n\`\`\`${res.message || 'Unknown error'}\`\`\`\n*Make sure your KEYAUTH_SELLER_KEY is correct in .env*`)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
+
+            if (res.data?.key) {
+                generatedKeys = [res.data.key];
+            } else if (Array.isArray(res.data?.keys)) {
+                generatedKeys = res.data.keys;
+            } else if (typeof res.data?.message === 'string' && res.data.message.includes(KEYAUTH_KEY_PREFIX)) {
+                generatedKeys = [res.data.message.trim()];
+            } else {
+                generatedKeys = ['KEY-GENERATED-CHECK-KEYAUTH-PANEL'];
+            }
+        } else {
+            // Local Server mode
+            const reqBody = {
+                count: count,
+                durationDays: days,
+                ownerDiscordId: targetUser ? targetUser.id : interaction.user.id,
+                ownerDiscordName: targetUser ? targetUser.tag : interaction.user.tag
+            };
+
+            const res = await callLocalApi('/keys/generate', 'POST', reqBody);
+
+            if (!res.ok || !res.data?.keys) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Key Generation Failed')
+                            .setDescription(`Could not connect to Auth API on \`${API_URL}\`.\n\n**Possible causes:**\n• If you are using **KeyAuth.cc**, please add your \`KEYAUTH_SELLER_KEY\` in \`DiscordBot/.env\`!\n• If you are running the local server, make sure \`start-server.bat\` is running.\n\n\`Status: ${res.status}\``)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
+
+            generatedKeys = res.data.keys.map(k => k.key);
         }
 
-        const keys = res.data.keys;
-        const keyListFormatted = keys.map(k => `\`\`\`${k.key}\`\`\``).join('');
+        const keyListFormatted = generatedKeys.map(k => `\`\`\`${k}\`\`\``).join('');
 
         const embed = new EmbedBuilder()
             .setTitle('🔑 License Key(s) Generated')
             .setColor(COLOR_SUCCESS)
             .addFields(
-                { name: 'Keys Count', value: `${keys.length}`, inline: true },
+                { name: 'Keys Count', value: `${generatedKeys.length}`, inline: true },
                 { name: 'Duration', value: days >= 99999 ? '♾️ Lifetime' : `${days} Days`, inline: true },
+                { name: 'Provider', value: isKeyAuthMode ? '🌐 KeyAuth Cloud' : '💻 Local Auth', inline: true },
                 { name: 'Assigned User', value: targetUser ? `<@${targetUser.id}>` : `<@${interaction.user.id}>`, inline: true },
                 { name: 'License Key(s)', value: keyListFormatted }
             )
-            .setFooter({ text: 'Arena / PowerX Auth Security System' })
+            .setFooter({ text: 'POWER X Security Engine' })
             .setTimestamp();
 
         if (customNote) {
             embed.addFields({ name: 'Note', value: customNote });
         }
 
-        // If target user provided, try to send them a private DM as well
         if (targetUser && targetUser.id !== interaction.user.id) {
             try {
                 const dmEmbed = new EmbedBuilder()
                     .setTitle('🎁 You Received a License Key!')
-                    .setDescription(`Here is your license key for **Arena / PowerX** provided by **${interaction.user.tag}**:`)
+                    .setDescription(`Here is your license key for **POWER X** provided by **${interaction.user.tag}**:`)
                     .addFields(
                         { name: 'Duration', value: days >= 99999 ? '♾️ Lifetime' : `${days} Days`, inline: true },
                         { name: 'Your Key', value: keyListFormatted }
@@ -293,176 +375,316 @@ client.on('interactionCreate', async (interaction) => {
         return interaction.editReply({ embeds: [embed] });
     }
 
+    // ==========================================
     // COMMAND: /checkkey
+    // ==========================================
     if (commandName === 'checkkey') {
         const key = interaction.options.getString('key').trim();
         await interaction.deferReply({ ephemeral: true });
 
-        const res = await callApi(`/keys/${encodeURIComponent(key)}`, 'GET');
+        if (isKeyAuthMode) {
+            const res = await callKeyAuth({ type: 'info', key });
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('🔍 Key Not Found')
+                            .setDescription(`KeyAuth: \`${res.message || 'Key does not exist'}\``)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
 
-        if (!res.ok || !res.data?.key) {
-            return interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setTitle('🔍 Key Not Found')
-                        .setDescription(`The key \`${key}\` does not exist in the database.`)
-                        .setColor(COLOR_ERROR)
-                ]
-            });
+            const info = res.data;
+            const embed = new EmbedBuilder()
+                .setTitle(`🔎 Key Details: \`${key}\``)
+                .setColor(COLOR_SUCCESS)
+                .addFields(
+                    { name: 'Status', value: `\`${info.status || (info.usedby ? 'USED' : 'UNUSED')}\``, inline: true },
+                    { name: 'Used By', value: info.usedby ? `\`${info.usedby}\`` : 'None', inline: true },
+                    { name: 'Duration', value: `${info.expiry || 'N/A'} Days`, inline: true },
+                    { name: 'HWID', value: info.hwid ? `\`${info.hwid.slice(0, 16)}...\`` : 'Not locked', inline: true }
+                )
+                .setFooter({ text: 'KeyAuth Cloud' })
+                .setTimestamp();
+
+            return interaction.editReply({ embeds: [embed] });
+        } else {
+            const res = await callLocalApi(`/keys/${encodeURIComponent(key)}`, 'GET');
+
+            if (!res.ok || !res.data?.key) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('🔍 Key Not Found')
+                            .setDescription(`The key \`${key}\` does not exist in the database.`)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
+
+            const k = res.data.key;
+            const embed = new EmbedBuilder()
+                .setTitle(`🔎 Key Details: \`${k.key}\``)
+                .setColor(k.status === 'available' ? COLOR_SUCCESS : COLOR_WARNING)
+                .addFields(
+                    { name: 'Status', value: `\`${k.status.toUpperCase()}\``, inline: true },
+                    { name: 'Duration', value: k.durationDays >= 99999 ? 'Lifetime' : `${k.durationDays} Days`, inline: true },
+                    { name: 'App ID', value: `\`${k.appId || 'Default'}\``, inline: true }
+                )
+                .setFooter({ text: 'POWER X Local Auth' })
+                .setTimestamp();
+
+            return interaction.editReply({ embeds: [embed] });
         }
-
-        const k = res.data.key;
-        const embed = new EmbedBuilder()
-            .setTitle(`🔎 Key Details: \`${k.key}\``)
-            .setColor(k.status === 'available' ? COLOR_SUCCESS : COLOR_WARNING)
-            .addFields(
-                { name: 'Status', value: `\`${k.status.toUpperCase()}\``, inline: true },
-                { name: 'Duration', value: k.durationDays >= 99999 ? 'Lifetime' : `${k.durationDays} Days`, inline: true },
-                { name: 'App ID', value: `\`${k.appId || 'Default'}\``, inline: true },
-                { name: 'Created', value: k.created ? `<t:${Math.floor(new Date(k.created).getTime() / 1000)}:R>` : 'Unknown', inline: true },
-                { name: 'Last Used', value: k.lastUsed ? `<t:${Math.floor(new Date(k.lastUsed).getTime() / 1000)}:R>` : 'Never', inline: true }
-            )
-            .setFooter({ text: 'Arena / PowerX Auth Security System' })
-            .setTimestamp();
-
-        return interaction.editReply({ embeds: [embed] });
     }
 
+    // ==========================================
     // COMMAND: /resethwid
+    // ==========================================
     if (commandName === 'resethwid') {
         const key = interaction.options.getString('key').trim();
         await interaction.deferReply({ ephemeral: true });
 
-        const res = await callApi(`/keys/${encodeURIComponent(key)}/reset-hwid`, 'POST');
+        if (isKeyAuthMode) {
+            const res = await callKeyAuth({ type: 'resetkey', key });
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ HWID Reset Failed')
+                            .setDescription(`KeyAuth: \`${res.message || 'Failed to reset key'}\``)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
 
-        if (!res.ok) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle('❌ HWID Reset Failed')
-                        .setDescription(`Failed to reset HWID for key \`${key}\`.`)
-                        .setColor(COLOR_ERROR)
+                        .setTitle('🔄 HWID Reset Success')
+                        .setDescription(`The HWID lock for key \`${key}\` has been reset on KeyAuth.`)
+                        .setColor(COLOR_SUCCESS)
+                        .setTimestamp()
+                ]
+            });
+        } else {
+            const res = await callLocalApi(`/keys/${encodeURIComponent(key)}/reset-hwid`, 'POST');
+
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ HWID Reset Failed')
+                            .setDescription(`Failed to reset HWID for key \`${key}\`.`)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
+
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle('🔄 HWID Reset Success')
+                        .setDescription(`The hardware lock (HWID) for \`${key}\` has been cleared. The user can now log in on a new device.`)
+                        .setColor(COLOR_SUCCESS)
+                        .setTimestamp()
                 ]
             });
         }
-
-        return interaction.editReply({
-            embeds: [
-                new EmbedBuilder()
-                    .setTitle('🔄 HWID Reset Success')
-                    .setDescription(`The hardware lock (HWID) for \`${key}\` has been cleared. The user can now log in on a new device.`)
-                    .setColor(COLOR_SUCCESS)
-                    .setTimestamp()
-            ]
-        });
     }
 
+    // ==========================================
     // COMMAND: /extendkey
+    // ==========================================
     if (commandName === 'extendkey') {
         const key = interaction.options.getString('key').trim();
         const days = interaction.options.getInteger('days');
         await interaction.deferReply({ ephemeral: true });
 
-        const res = await callApi(`/keys/${encodeURIComponent(key)}/extend`, 'POST', { extraDays: days });
+        if (isKeyAuthMode) {
+            const res = await callKeyAuth({ type: 'extend', key, expiry: days });
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Extension Failed')
+                            .setDescription(`KeyAuth: \`${res.message || 'Failed to extend key'}\``)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
 
-        if (!res.ok) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle('❌ Extension Failed')
-                        .setDescription(`Failed to extend key \`${key}\`. Make sure the key exists.`)
-                        .setColor(COLOR_ERROR)
+                        .setTitle('⏳ Key Extended')
+                        .setDescription(`Key \`${key}\` extended by **+${days} days** on KeyAuth!`)
+                        .setColor(COLOR_SUCCESS)
+                        .setTimestamp()
+                ]
+            });
+        } else {
+            const res = await callLocalApi(`/keys/${encodeURIComponent(key)}/extend`, 'POST', { extraDays: days });
+
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Extension Failed')
+                            .setDescription(`Failed to extend key \`${key}\`. Make sure the key exists.`)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
+
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle('⏳ Key Extended')
+                        .setDescription(`Key \`${key}\` extended by **+${days} days**!\nNew total duration: **${res.data?.durationDays} days**.`)
+                        .setColor(COLOR_SUCCESS)
+                        .setTimestamp()
                 ]
             });
         }
-
-        return interaction.editReply({
-            embeds: [
-                new EmbedBuilder()
-                    .setTitle('⏳ Key Extended')
-                    .setDescription(`Key \`${key}\` extended by **+${days} days**!\nNew total duration: **${res.data?.durationDays} days**.`)
-                    .setColor(COLOR_SUCCESS)
-                    .setTimestamp()
-            ]
-        });
     }
 
+    // ==========================================
     // COMMAND: /delkey
+    // ==========================================
     if (commandName === 'delkey') {
         const key = interaction.options.getString('key').trim();
         await interaction.deferReply({ ephemeral: true });
 
-        const res = await callApi(`/keys/${encodeURIComponent(key)}`, 'DELETE');
+        if (isKeyAuthMode) {
+            const res = await callKeyAuth({ type: 'del', key });
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Deletion Failed')
+                            .setDescription(`KeyAuth: \`${res.message || 'Could not delete key'}\``)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
 
-        if (!res.ok) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
-                        .setTitle('❌ Deletion Failed')
-                        .setDescription(`Could not delete key \`${key}\`.`)
-                        .setColor(COLOR_ERROR)
+                        .setTitle('🗑️ Key Deleted')
+                        .setDescription(`Key \`${key}\` has been permanently deleted from KeyAuth.`)
+                        .setColor(COLOR_SUCCESS)
+                        .setTimestamp()
+                ]
+            });
+        } else {
+            const res = await callLocalApi(`/keys/${encodeURIComponent(key)}`, 'DELETE');
+
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Deletion Failed')
+                            .setDescription(`Could not delete key \`${key}\`.`)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
+
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle('🗑️ Key Deleted')
+                        .setDescription(`Key \`${key}\` has been permanently deleted from the database.`)
+                        .setColor(COLOR_SUCCESS)
+                        .setTimestamp()
                 ]
             });
         }
-
-        return interaction.editReply({
-            embeds: [
-                new EmbedBuilder()
-                    .setTitle('🗑️ Key Deleted')
-                    .setDescription(`Key \`${key}\` has been permanently deleted from the database.`)
-                    .setColor(COLOR_SUCCESS)
-                    .setTimestamp()
-            ]
-        });
     }
 
+    // ==========================================
     // COMMAND: /stats
+    // ==========================================
     if (commandName === 'stats') {
         await interaction.deferReply({ ephemeral: true });
 
-        const res = await callApi('/stats', 'GET');
+        if (isKeyAuthMode) {
+            const res = await callKeyAuth({ type: 'stats' });
+            if (!res.ok) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Stats Failed')
+                            .setDescription(`KeyAuth: \`${res.message || 'Could not fetch stats'}\``)
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
 
-        if (!res.ok || !res.data?.stats) {
-            return interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setTitle('❌ Stats Failed')
-                        .setDescription('Could not fetch stats from Auth Server.')
-                        .setColor(COLOR_ERROR)
-                ]
-            });
+            const s = res.data;
+            const embed = new EmbedBuilder()
+                .setTitle('📊 KeyAuth Statistics')
+                .setColor(COLOR_PRIMARY)
+                .addFields(
+                    { name: '🔑 Total Keys', value: `\`${s.total_keys || s.keys || 'N/A'}\``, inline: true },
+                    { name: '👥 Total Users', value: `\`${s.total_users || s.users || 'N/A'}\``, inline: true },
+                    { name: '📱 Total App Users', value: `\`${s.app_users || 'N/A'}\``, inline: true }
+                )
+                .setFooter({ text: 'POWER X KeyAuth' })
+                .setTimestamp();
+
+            return interaction.editReply({ embeds: [embed] });
+        } else {
+            const res = await callLocalApi('/stats', 'GET');
+
+            if (!res.ok || !res.data?.stats) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle('❌ Stats Failed')
+                            .setDescription('Could not fetch stats from local Auth Server.')
+                            .setColor(COLOR_ERROR)
+                    ]
+                });
+            }
+
+            const s = res.data.stats;
+            const embed = new EmbedBuilder()
+                .setTitle('📊 Local Auth Statistics')
+                .setColor(COLOR_PRIMARY)
+                .addFields(
+                    { name: '🔑 Total Keys', value: `\`${s.total}\``, inline: true },
+                    { name: '👥 Total Users', value: `\`${s.users}\``, inline: true },
+                    { name: '📱 Total Applications', value: `\`${s.apps}\``, inline: true }
+                )
+                .setFooter({ text: 'Auth Server Online' })
+                .setTimestamp();
+
+            return interaction.editReply({ embeds: [embed] });
         }
-
-        const s = res.data.stats;
-        const embed = new EmbedBuilder()
-            .setTitle('📊 Arena / PowerX Auth Statistics')
-            .setColor(COLOR_PRIMARY)
-            .addFields(
-                { name: '🔑 Total Keys', value: `\`${s.total}\``, inline: true },
-                { name: '👥 Total Users', value: `\`${s.users}\``, inline: true },
-                { name: '📱 Total Applications', value: `\`${s.apps}\``, inline: true }
-            )
-            .setFooter({ text: 'Auth Server Online' })
-            .setTimestamp();
-
-        return interaction.editReply({ embeds: [embed] });
     }
 
+    // ==========================================
     // COMMAND: /help
+    // ==========================================
     if (commandName === 'help') {
+        const modeText = isKeyAuthMode ? '🌐 Mode: **KeyAuth Cloud**' : '💻 Mode: **Local Auth Server**';
         const helpEmbed = new EmbedBuilder()
-            .setTitle('📖 Arena / PowerX Auth Bot Commands')
+            .setTitle('📖 POWER X Auth Bot Commands')
             .setColor(COLOR_PRIMARY)
-            .setDescription('Manage your license keys and authentication system directly from Discord.')
+            .setDescription(`${modeText}\nManage your license keys and authentication system directly from Discord.`)
             .addFields(
-                { name: '`/genkey [days] [count] [user] [note]`', value: 'Generate one or multiple license keys. Option to DM key directly to a user.' },
-                { name: '`/checkkey [key]`', value: 'Check key status, expiration, and last used time.' },
-                { name: '`/resethwid [key]`', value: 'Reset HWID lock for a user or key.' },
+                { name: '`/genkey [days] [count] [user] [note]`', value: 'Generate license keys. Sends DM directly to tagged user.' },
+                { name: '`/checkkey [key]`', value: 'Check key status, expiration, and HWID.' },
+                { name: '`/resethwid [key]`', value: 'Reset HWID lock for a key.' },
                 { name: '`/extendkey [key] [days]`', value: 'Add extra days to an existing key.' },
-                { name: '`/delkey [key]`', value: 'Delete a key from the database.' },
-                { name: '`/stats`', value: 'View total keys, users, and apps statistics.' }
+                { name: '`/delkey [key]`', value: 'Delete a key permanently.' },
+                { name: '`/stats`', value: 'View total keys, users, and app stats.' }
             )
-            .setFooter({ text: 'Developed for Arena System Auth' })
+            .setFooter({ text: 'POWER X Auth Security System' })
             .setTimestamp();
 
         return interaction.reply({ embeds: [helpEmbed], ephemeral: true });
