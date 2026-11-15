@@ -8,6 +8,11 @@ import {
     EmbedBuilder,
     PermissionFlagsBits
 } from 'discord.js';
+import {
+    joinVoiceChannel,
+    VoiceConnectionStatus,
+    entersState
+} from '@discordjs/voice';
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -23,11 +28,16 @@ const TARGET_APP_ID = process.env.APP_ID || 'f6eaab3fe773449a8a2832baa8b46e2d';
 const TARGET_APP_SECRET = process.env.APP_SECRET || '91654ab9b2fa4761bdcdf7fc6cd58d7993eb78fba0ca41f3bf93de05d67a9ed9';
 const TARGET_APP_NAME = process.env.APP_NAME || 'POWER X';
 
+// 24/7 Voice Channel
+const VOICE_CHANNEL_ID = process.env.VOICE_CHANNEL_ID || '1564096123117768825';
+
 let currentApp = {
     id: TARGET_APP_ID,
     name: TARGET_APP_NAME,
     secret: TARGET_APP_SECRET
 };
+
+let voiceConnection = null;
 
 // Colors
 const COLOR_PRIMARY = 0x8B5CF6; // Purple
@@ -36,9 +46,10 @@ const COLOR_ERROR = 0xEF4444;   // Red
 const COLOR_WARNING = 0xF59E0B; // Orange
 
 console.log('========================================================');
-console.log('⚡ POWER X DISCORD BOT');
+console.log('⚡ POWER X DISCORD BOT (with 24/7 Voice)');
 console.log(`🔗 Auth Server: ${API_URL}`);
 console.log(`🎯 Target App: ${TARGET_APP_NAME} (${TARGET_APP_ID})`);
+console.log(`🔊 24/7 Voice Channel: ${VOICE_CHANNEL_ID}`);
 console.log('========================================================');
 
 // Helper for API requests
@@ -88,6 +99,47 @@ async function syncApplication() {
         }
     } catch (err) {
         console.error('Could not sync apps on start:', err.message);
+    }
+}
+
+// Function to connect to 24/7 Voice Channel
+async function connectToVoiceChannel() {
+    if (!VOICE_CHANNEL_ID) return;
+
+    try {
+        const channel = await client.channels.fetch(VOICE_CHANNEL_ID).catch(() => null);
+        if (!channel || !channel.isVoiceBased()) {
+            console.warn(`⚠️ Voice channel ${VOICE_CHANNEL_ID} not found or is not a voice channel.`);
+            return;
+        }
+
+        voiceConnection = joinVoiceChannel({
+            channelId: channel.id,
+            guildId: channel.guild.id,
+            adapterCreator: channel.guild.voiceAdapterCreator,
+            selfDeaf: true,
+            selfMute: true
+        });
+
+        voiceConnection.on(VoiceConnectionStatus.Ready, () => {
+            console.log(`🔊 [24/7 Voice] Connected to "${channel.name}" in ${channel.guild.name}!`);
+        });
+
+        voiceConnection.on(VoiceConnectionStatus.Disconnected, async () => {
+            try {
+                await Promise.race([
+                    entersState(voiceConnection, VoiceConnectionStatus.Signalling, 5_000),
+                    entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000)
+                ]);
+            } catch (e) {
+                console.log('⚠️ [24/7 Voice] Disconnected! Reconnecting in 5 seconds...');
+                voiceConnection.destroy();
+                setTimeout(connectToVoiceChannel, 5000);
+            }
+        });
+    } catch (err) {
+        console.error('❌ Failed to connect to Voice Channel:', err.message);
+        setTimeout(connectToVoiceChannel, 10000);
     }
 }
 
@@ -193,11 +245,12 @@ const commands = [
         .setDescription('📖 Show all available bot commands and setup guide')
 ];
 
-// Initialize Discord Client
+// Initialize Discord Client with Voice States intent
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildVoiceStates
     ]
 });
 
@@ -238,6 +291,7 @@ client.once('ready', async () => {
     console.log('========================================================');
     await syncApplication();
     await registerCommands();
+    await connectToVoiceChannel();
 });
 
 // Handle Interactions
